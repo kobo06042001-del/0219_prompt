@@ -1802,10 +1802,15 @@ async function callClaude(messages, system, maxTokens=1000) {
 
 // 타이핑 효과 시뮬레이션 (CORS 이슈 없는 일반 fetch 사용)
 async function callClaudeStreaming(messages, system, targetEl, onDone) {
-  if(!getApiKey()) {
-    targetEl.innerHTML = `<span style="color:#ff6b6b;">⚠️ API 키가 설정되지 않았습니다.<br>우측 상단 <strong>API 미연결</strong> 버튼을 눌러 키를 입력해주세요.</span>`;
+  const useServerless =
+    (typeof APP_CONFIG !== "undefined" && APP_CONFIG.USE_SERVERLESS === true) ||
+    (typeof CONFIG !== "undefined" && CONFIG.USE_SERVERLESS === true);
+
+  if(!useServerless && !getApiKey()) {
+    targetEl.innerHTML = `<span style="color:#ff6b6b;">⚠️ API 키가 설정되지 않았습니다.</span>`;
     return;
   }
+
   targetEl.innerHTML = '<span class="ai-cursor"></span>';
 
   try {
