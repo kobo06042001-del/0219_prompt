@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trade Prompt Lab</title>
+  <script src="config.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    :root {
+      --bg: #2d1b4e;
+      --surface: #3a2460;
+      --surface2: #452d72;
+      --border: #5e4490;
+      --border2: #4a3578;
+      --text: #f0ebff;
+      --text2: #b8a9d9;
+      --text3: #8b7ab5;
+      --accent: #00d4aa;
+      --accent2: #7b9fff;
+      --accent3: #ff6b6b;
+      --accent4: #f5a623;
+      --glow: rgba(0, 212, 170, 0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #2d1b4e 0%, #3d2060 40%, #2a1a55 100%);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .display { font-family: 'Space Grotesk', sans-serif; }
+
+    /* NAV */
+    .nav-tab {
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      transition: all .2s;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .nav-tab:hover { color: var(--text); background: var(--surface2); }
+    .nav-tab.active {
+      color: var(--accent);
+      background: rgba(0,212,170,0.1);
+      border-color: rgba(0,212,170,0.3);
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .card-glow {
+      box-shadow: 0 0 0 1px rgba(0,212,170,0.2), 0 8px 32px rgba(0,212,170,0.06);
+    }
+
+    /* CODE BLOCK */
+    .code-box {
+      background: #0b1220;
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.7;
+      color: #7ee787;
+      white-space: pre-wrap;
+      word-break: break-all;
+      min-height: 80px;
+    }
+
+    /* BADGE */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* INPUT */
+    .inp {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'Noto Sans KR', sans-serif;
+      transition: border-color .2s;
+      resize: vertical;
+    }
+    .inp:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,170,0.1); }
+    .inp::placeholder { color: var(--text3); }
+
+    /* BTN */
+    .btn-primary {
+      background: linear-gradient(135deg, #00d4aa, #00b894);
+      color: #0d1117;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all .2s;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,170,0.4); }
+
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--text2);
+      font-weight: 600;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all .2s;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--text3); }
+
+    .btn-icon {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text3);
+      transition: all .2s;
+    }
+    .btn-icon:hover { color: var(--text); border-color: var(--text3); }
+    .btn-icon.danger:hover { color: var(--accent3); border-color: var(--accent3); }
+
+    /* SECTION PANEL */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* THEORY TABS */
+    .theory-tab {
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text3);
+      transition: all .2s;
+      border: 1px solid transparent;
+    }
+    .theory-tab:hover { color: var(--text2); background: var(--surface2); }
+    .theory-tab.active {
+      color: var(--accent2);
+      background: rgba(0,119,255,0.1);
+      border-color: rgba(0,119,255,0.3);
+    }
+
+    /* Example card click */
+    .example-pill {
+      display: inline-block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all .2s;
+      margin: 3px;
+    }
+    .example-pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0,212,170,0.08);
+    }
+
+    /* Tone slider */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 4px;
+      background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--val, 25%), var(--border) var(--val, 25%), var(--border) 100%);
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 8px rgba(0,212,170,0.5);
+    }
+
+    /* Archive card */
+    .arch-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      transition: border-color .2s;
+      cursor: default;
+    }
+    .arch-card:hover { border-color: rgba(0,212,170,0.4); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+    /* Markdown render in preview */
+    .md-render { color: var(--text); font-size: 13px; line-height: 1.8; }
+    .md-render h1 { font-size: 1.1rem; font-weight: 800; color: var(--accent); margin: 8px 0 4px; }
+    .md-render h2 { font-size: 1rem; font-weight: 700; color: #79c0ff; margin: 8px 0 4px; }
+    .md-render pre { background: #0b1220; padding: 12px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #7ee787; overflow-x: auto; margin: 6px 0; }
+    .md-render code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #ffcb6b; }
+    .md-render blockquote { border-left: 3px solid var(--accent); padding-left: 12px; color: var(--text2); margin: 6px 0; font-style: italic; }
+    .md-render ul { padding-left: 20px; margin: 4px 0; }
+    .md-render li { margin: 2px 0; }
+    .md-render table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+    .md-render th { background: var(--surface2); padding: 8px 12px; border: 1px solid var(--border); font-size: 12px; }
+    .md-render td { padding: 7px 12px; border: 1px solid var(--border); font-size: 12px; }
+
+    /* Theory section styles */
+    .theory-block {
+      background: var(--surface2);
+      border-left: 3px solid var(--accent2);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 16px;
+      margin: 8px 0;
+    }
+
+    .type-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      transition: border-color .2s;
+    }
+    .type-card:hover { border-color: var(--accent2); }
+
+    .tag-type {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Step indicator */
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), #00aaff);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+      color: white; flex-shrink: 0;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 12px 20px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 9999;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all .3s cubic-bezier(.34, 1.56, .64, 1);
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* Diff viewer */
+    .diff-before { border-left: 3px solid var(--accent3); background: rgba(255,107,107,0.06); padding: 12px; border-radius: 0 8px 8px 0; }
+    .diff-after  { border-left: 3px solid var(--accent); background: rgba(0,212,170,0.06); padding: 12px; border-radius: 0 8px 8px 0; }
+
+    /* 아코디언 */
+    .accordion-body { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+    .accordion-body.open { max-height: 2000px; }
+    .accordion-arrow { transition: transform .3s; }
+    .accordion-arrow.open { transform: rotate(180deg); }
+
+    /* Pattern button group */
+    .pattern-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all .2s;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .pattern-btn:hover, .pattern-btn.active {
+      border-color: var(--accent4);
+      color: var(--accent4);
+      background: rgba(245,166,35,0.08);
+    }
+
+    .label-sm {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text3);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border2);
+      margin: 16px 0;
+    }
+
+    /* Grid columns */
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr !important; }
+      .grid-3 { grid-template-columns: 1fr !important; }
+    }
+
+    /* Glow text */
+    .glow-text {
+      background: linear-gradient(135deg, var(--accent), #00b4d8, #0077ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ── AI 관련 스타일 ── */
+
+    /* API Key 모달 */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      width: min(440px, 92vw);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    /* AI 응답 패널 */
+    .ai-panel {
+      background: linear-gradient(135deg, rgba(0,212,170,0.04), rgba(0,119,255,0.04));
+      border: 1px solid rgba(0,212,170,0.25);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+      display: none;
+    }
+    .ai-panel.visible { display: block; }
+    .ai-panel-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px; font-size: 12px; font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* 스트리밍 커서 */
+    .ai-cursor::after {
+      content: "▋";
+      animation: blink 1s step-end infinite;
+      color: var(--accent);
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* AI 버튼 */
+    .btn-ai {
+      background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(0,119,255,0.15));
+      border: 1px solid rgba(0,212,170,0.4);
+      color: var(--accent);
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 9px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all .2s;
+      font-family: 'Noto Sans KR', sans-serif;
+      display: flex; align-items: center; gap: 6px;
+      white-space: nowrap;
+    }
+    .btn-ai:hover {
+      background: linear-gradient(135deg, rgba(0,212,170,0.25), rgba(0,119,255,0.25));
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px rgba(0,212,170,0.2);
+    }
+    .btn-ai:disabled {
+      opacity: 0.5; cursor: not-allowed;
+      box-shadow: none; transform: none;
+    }
+
+    /* API 상태 뱃지 */
+    .api-badge {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px;
+      cursor: pointer; transition: all .2s;
+    }
+    .api-badge.connected {
+      background: rgba(0,212,170,0.1);
+      border: 1px solid rgba(0,212,170,0.3);
+      color: var(--accent);
+    }
+    .api-badge.disconnected {
+      background: rgba(255,107,107,0.1);
+      border: 1px solid rgba(255,107,107,0.3);
+      color: #ff6b6b;
+    }
+    .api-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+    }
+    .api-dot.on  { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .api-dot.off { background: #ff6b6b; }
+
+    /* 로딩 스피너 */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,212,170,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 점수 바 */
+    .score-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
+  </style>
+</head>
+
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- API KEY MODAL (config.js 안내용) -->
+<div id="apiModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:32px;height:32px;background:linear-gradient(135deg,#00d4aa,#0077ff);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <i class="fa-solid fa-key" style="color:white;font-size:13px;"></i>
+        </div>
+        <div style="font-size:16px;font-weight:700;">API 키 설정 안내</div>
+      </div>
+      <button onclick="closeApiModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div id="apiModalStatus" style="margin-bottom:16px;padding:12px;border-radius:10px;font-size:13px;line-height:1.8;"></div>
+
+    <div style="background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;line-height:1.9;color:var(--text2);">
+      <div style="font-weight:700;color:var(--text);margin-bottom:8px;">
+        <i class="fa-solid fa-file-code" style="color:var(--accent);margin-right:6px;"></i>
+        <code style="color:var(--accent);">config.js</code> 파일에 키를 입력하세요
+      </div>
+      <div style="background:#0b1220;border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#7ee787;margin-bottom:10px;">
+const ANTHROPIC_CONFIG = {<br>
+&nbsp;&nbsp;apiKey: "<span style="color:#f5a623;">sk-ant-여기에_키_입력</span>",<br>
+};</div>
+      <div style="display:grid;gap:6px;">
+        <div style="display:flex;align-items:start;gap:8px;">
+          <span style="color:var(--accent);font-weight:700;flex-shrink:0;">①</span>
+          <span><a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a>에서 API 키 발급</span>
+        </div>
+        <div style="display:flex;align-items:start;gap:8px;">
+          <span style="color:var(--accent);font-weight:700;flex-shrink:0;">②</span>
+          <span><code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">config.js</code> 파일을 열고 키 붙여넣기</span>
+        </div>
+        <div style="display:flex;align-items:start;gap:8px;">
+          <span style="color:var(--accent);font-weight:700;flex-shrink:0;">③</span>
+          <span>브라우저에서 HTML 파일을 새로고침 (<code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">F5</code>)</span>
+        </div>
+        <div style="display:flex;align-items:start;gap:8px;">
+          <span style="color:#f5a623;font-weight:700;flex-shrink:0;">⚠️</span>
+          <span><code style="background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;">config.js</code>를 <strong style="color:var(--text);">절대 GitHub 등 공개 저장소에 업로드하지 마세요.</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" style="width:100%;" onclick="closeApiModal()">확인</button>
+  </div>
+</div>
+
+<!-- AI EXPLAIN MODAL -->
+<div id="aiExplainModal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:min(680px,95vw);max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:32px;height:32px;background:linear-gradient(135deg,#00d4aa,#0077ff);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <i class="fa-solid fa-brain" style="color:white;font-size:13px;"></i>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:700;" id="explainTitle">AI 심화 설명</div>
+          <div style="font-size:11px;color:var(--text3);">Claude Sonnet이 생성한 설명</div>
+        </div>
+      </div>
+      <button onclick="closeExplainModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="explainContent" class="md-render" style="font-size:13px;line-height:1.8;min-height:80px;">
+      <div style="display:flex;align-items:center;gap:8px;color:var(--text3);">
+        <div class="spinner"></div> AI가 설명을 생성 중입니다...
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header style="background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;">
+  <div style="max-width:1280px;margin:0 auto;padding:0 20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px;">
+      <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+        <div style="width:36px;height:36px;background:linear-gradient(135deg,#00d4aa,#0077ff);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+          <i class="fa-solid fa-flask" style="color:white;font-size:15px;"></i>
+        </div>
+        <div>
+          <div class="display" style="font-size:16px;font-weight:700;letter-spacing:-.02em;">
+            Trade Prompt <span class="glow-text">Lab</span>
+          </div>
+          <div style="font-size:11px;color:var(--text3);">프롬프트 엔지니어링 실험실 v3</div>
+        </div>
+      </div>
+
+      <!-- NAV TABS -->
+      <nav style="display:flex;gap:4px;overflow-x:auto;flex:1;justify-content:center;">
+        <button class="nav-tab active" onclick="switchPanel('theory')">
+          <i class="fa-solid fa-book-open mr-1"></i>기초 이론
+        </button>
+        <button class="nav-tab" onclick="switchPanel('builder')">
+          <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>빌더
+        </button>
+        <button class="nav-tab" onclick="switchPanel('examples')">
+          <i class="fa-solid fa-lightbulb mr-1"></i>실습 예시
+        </button>
+        <button class="nav-tab" onclick="switchPanel('archive')">
+          <i class="fa-solid fa-box-archive mr-1"></i>아카이브
+          <span id="archCount" style="background:rgba(0,212,170,0.2);color:var(--accent);padding:1px 6px;border-radius:10px;font-size:10px;margin-left:4px;">0</span>
+        </button>
+      </nav>
+
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+        <!-- API 상태 뱃지 -->
+        <div id="apiBadge" class="api-badge disconnected" onclick="openApiModal()" title="API 키 설정">
+          <div id="apiDot" class="api-dot off"></div>
+          <span id="apiStatus">API 미연결</span>
+        </div>
+        <button class="btn-ghost" onclick="exportArchive()" title="Export JSON">
+          <i class="fa-solid fa-file-export"></i>
+        </button>
+        <label class="btn-ghost" style="cursor:pointer;" title="Import JSON">
+          <i class="fa-solid fa-file-import"></i>
+          <input id="fileImport" type="file" accept="application/json" style="display:none;" onchange="importArchive(this)"/>
+        </label>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main style="max-width:1280px;margin:0 auto;padding:24px 20px;">
+
+  <!-- ===================== PANEL: THEORY ===================== -->
+  <div id="panel-theory" class="panel active">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:gap 8px;">
+      <div>
+        <h2 class="display" style="font-size:20px;font-weight:700;">기초 이론 학습</h2>
+        <p style="color:var(--text2);font-size:13px;margin-top:4px;">프롬프트 엔지니어링의 핵심 원칙을 정리한 레퍼런스</p>
+      </div>
+    </div>
+
+    <!-- Theory sub-tabs -->
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;background:var(--surface);padding:8px;border-radius:10px;border:1px solid var(--border);">
+      <button class="theory-tab active" onclick="switchTheory('t1')">① 프롬프트 유형</button>
+      <button class="theory-tab" onclick="switchTheory('t2')">② 샷 기법</button>
+      <button class="theory-tab" onclick="switchTheory('t3')">③ 페르소나 패턴</button>
+      <button class="theory-tab" onclick="switchTheory('t4')">④ 마크다운 구조화</button>
+      <button class="theory-tab" onclick="switchTheory('t5')">⑤ 표현 강도 조절</button>
+      <button class="theory-tab" onclick="switchTheory('t6')">⑥ 대안 접근법 패턴</button>
+      <button class="theory-tab" onclick="switchTheory('t7')">⑦ 레시피 패턴</button>
+      <button class="theory-tab" onclick="switchTheory('t8')">⑧ 뒤집힌 상호작용</button>
+      <button class="theory-tab" onclick="switchTheory('t9')">⑨ 인지 검증자 패턴</button>
+      <div style="flex:1;"></div>
+      <button class="btn-ai" id="btnAiExplain" onclick="aiExplainCurrentTheory()">
+        <i class="fa-solid fa-brain"></i> AI 심화 설명
+      </button>
+    </div>
+
+    <!-- T1: 프롬프트 3유형 -->
+    <div id="t1" class="theory-panel">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" class="grid-3">
+
+        <!-- 서술형 -->
+        <div class="type-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span class="tag-type" style="background:rgba(255,107,107,0.15);color:#ff6b6b;">서술형</span>
+            <span style="font-size:12px;color:var(--text2);">맥락·배경 설명</span>
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+            AI가 상황을 이해하도록 <strong style="color:var(--text);">배경과 맥락</strong>을 풍부하게 설명하는 방식. 자유로운 답변이 필요할 때 적합.
+          </p>
+          <div class="code-box" style="font-size:11.5px;">
+# 당신은 10년 경력의 무역 전문가입니다.
+# 중소기업 수출 담당자가 HS Code를
+  처음 배우는 상황입니다.
+# 이 사람에게 HS Code의 개념과
+  중요성을 설명해주세요.</div>
+          <div class="theory-block" style="margin-top:12px;border-color:#ff6b6b;">
+            <div style="font-size:12px;color:var(--text2);">
+              ✔ 자유로운 설명이 필요할 때<br>
+              ✔ AI에게 충분한 배경을 줄 때<br>
+              ✗ 일관된 포맷 출력이 필요할 때는 부적합
+            </div>
+          </div>
+        </div>
+
+        <!-- 지침형 -->
+        <div class="type-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span class="tag-type" style="background:rgba(0,119,255,0.15);color:#0077ff;">지침형</span>
+            <span style="font-size:12px;color:var(--text2);">단계별 규칙 제시</span>
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+            <strong style="color:var(--text);">단계별 절차나 명확한 규칙</strong>을 제시. 일관된 출력 품질이 필요할 때 최적.
+          </p>
+          <div class="code-box" style="font-size:11.5px;">
+# 다음 규칙에 따라 Python 코드를 작성하세요
+1. 함수명은 snake_case로 작성
+2. 각 함수의 docstring(주석) 포함
+3. 예외 처리 반드시 포함
+4. 결과는 JSON 형식으로 반환</div>
+          <div class="theory-block" style="margin-top:12px;border-color:#0077ff;">
+            <div style="font-size:12px;color:var(--text2);">
+              ✔ 코드·문서 작성 규칙 적용<br>
+              ✔ 반복 작업 자동화<br>
+              ✗ 창의적·탐색적 작업에는 딱딱함
+            </div>
+          </div>
+        </div>
+
+        <!-- 함수형 -->
+        <div class="type-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span class="tag-type" style="background:rgba(0,212,170,0.15);color:var(--accent);">함수형</span>
+            <span style="font-size:12px;color:var(--text2);">입출력 명확 정의</span>
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+            <strong style="color:var(--text);">입력·처리·출력을 명확히 정의</strong>하여 일관된 결과를 생성. 자동화·데이터 처리에 최강.
+          </p>
+          <div class="code-box" style="font-size:11.5px;">
+# 입력: {product_name}, {hs_code}, {country}
+# 처리: 해당 국가의 관세율 및 규제 조회
+# 출력: {
+    "관세율": "",
+    "규제사항": [],
+    "필요서류": []
+  }</div>
+          <div class="theory-block" style="margin-top:12px;border-color:var(--accent);">
+            <div style="font-size:12px;color:var(--text2);">
+              ✔ 데이터 추출·변환 자동화<br>
+              ✔ 항상 같은 포맷 출력<br>
+              ✗ 서술적 설명에는 과잉 구조화
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- T2: 샷 기법 -->
+    <div id="t2" class="theory-panel" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" class="grid-3">
+
+        <div class="type-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span class="tag-type" style="background:rgba(255,107,107,0.15);color:#ff6b6b;">제로샷</span>
+            <span style="font-size:12px;color:var(--text2);">예시 없이 직접 지시</span>
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+            예시 없이 바로 질문. 간단한 작업이나 AI가 잘 아는 분야에 적합.
+          </p>
+          <div class="code-box" style="font-size:11.5px;">
+이 제품 정말 맘에 들어.
+
+→ 감정을 분류해 주세요.</div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+            <span class="badge" style="background:rgba(255,107,107,0.1);color:#ff6b6b;">빠름</span>
+            <span style="font-size:12px;color:var(--text3);">단순 작업 / 탐색 단계</span>
+          </div>
+        </div>
+
+        <div class="type-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span class="tag-type" style="background:rgba(245,166,35,0.15);color:#f5a623;">원샷</span>
+            <span style="font-size:12px;color:var(--text2);">예시 1개 제공</span>
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+            예시 1개로 패턴을 학습시킴. 포맷이나 스타일을 가이드할 때.
+          </p>
+          <div class="code-box" style="font-size:11.5px;">
+감정을 분류해 주세요.
+
+예시)
+"배송이 너무 늦어서 실망했어요."
+→ 감정: 부정
+
+"이 제품 정말 맘에 들어" → 감정:</div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+            <span class="badge" style="background:rgba(245,166,35,0.1);color:#f5a623;">적당</span>
+            <span style="font-size:12px;color:var(--text3);">포맷 가이드 필요 시</span>
+          </div>
+        </div>
+
+        <div class="type-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span class="tag-type" style="background:rgba(0,212,170,0.15);color:var(--accent);">퓨샷</span>
+            <span style="font-size:12px;color:var(--text2);">예시 2개 이상</span>
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+            2개 이상 예시로 정확한 패턴 학습. 복잡한 분류·변환 작업에 최적.
+          </p>
+          <div class="code-box" style="font-size:11.5px;">
+감정 분류(긍정/부정/중립):
+
+"배송이 늦어서 실망" → 부정
+"그냥 평범한 제품" → 중립
+"역대급 만족" → 긍정
+"품질 좋은데 가격 비싸" → 중립
+
+"이 제품 정말 맘에 들어" → ?</div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+            <span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">정밀</span>
+            <span style="font-size:12px;color:var(--text3);">분류·변환 자동화</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 무역 퓨샷 예시 -->
+      <div class="card" style="margin-top:16px;border-color:rgba(0,212,170,0.3);">
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">
+          <i class="fa-solid fa-star mr-1"></i>무역 실무 퓨샷 예시 — HS Code 분류
+        </div>
+        <div class="code-box">
+** HS Code를 분류해주세요
+
+예시)
+품목: "면으로 만든 남성용 티셔츠" -> 6109.10
+품목: "폴리에스테르 소재 여성 블라우스" -> 6110.10
+품목: "아동용 데님 바지" -> 6111.10
+
+품목: "울 혼방 남성 재킷" -> HS Code?
+
+→ 정답: 6203.31 (울 소재 남성 재킷, 직물 기준)</div>
+      </div>
+    </div>
+
+    <!-- T3: 페르소나 -->
+    <div id="t3" class="theory-panel" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" class="grid-2">
+        <div class="card">
+          <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--accent2);">
+            <i class="fa-solid fa-circle-question mr-1"></i>페르소나가 왜 중요한가?
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.8;">
+            같은 질문 "이 계약서 검토해줘"도 페르소나에 따라 완전히 다른 답변이 나옵니다.
+          </p>
+          <div style="margin-top:12px;display:grid;gap:8px;">
+            <div class="theory-block" style="border-color:#ff6b6b;">
+              <div style="font-size:12px;"><strong style="color:#ff6b6b;">변호사</strong> 페르소나: 법적 리스크 중심 분석</div>
+            </div>
+            <div class="theory-block" style="border-color:#f5a623;">
+              <div style="font-size:12px;"><strong style="color:#f5a623;">CFO</strong> 페르소나: 재무조건·수익성 분석</div>
+            </div>
+            <div class="theory-block" style="border-color:#0077ff;">
+              <div style="font-size:12px;"><strong style="color:#0077ff;">신입사원</strong> 페르소나: 쉽고 친절한 설명</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--accent2);">
+            <i class="fa-solid fa-layer-group mr-1"></i>좋은 페르소나 4요소
+          </div>
+          <div style="display:grid;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);padding:10px;border-radius:8px;">
+              <div class="step-num">1</div>
+              <div><div style="font-size:12px;font-weight:700;">역할 (Role)</div><div style="font-size:11px;color:var(--text3);">당신은 [역할]입니다</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);padding:10px;border-radius:8px;">
+              <div class="step-num">2</div>
+              <div><div style="font-size:12px;font-weight:700;">경력/배경 (Background)</div><div style="font-size:11px;color:var(--text3);">[경력/배경]을 가지고 있으며</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);padding:10px;border-radius:8px;">
+              <div class="step-num">3</div>
+              <div><div style="font-size:12px;font-weight:700;">전문 분야 (Expertise)</div><div style="font-size:11px;color:var(--text3);">[분야]에 특화되어 있습니다</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);padding:10px;border-radius:8px;">
+              <div class="step-num">4</div>
+              <div><div style="font-size:12px;font-weight:700;">말투/태도 (Tone)</div><div style="font-size:11px;color:var(--text3);">[스타일]로 응답하세요</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" class="grid-3">
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:var(--accent);margin-bottom:8px;">관세사 페르소나</div>
+          <div class="code-box" style="font-size:11px;">"당신은 20년 경력의 관세사입니다.
+FTA 협정세율과 원산지 규정의 전문가로,
+중소기업 무역 담당자에게 복잡한 내용을
+쉽고 실용적으로 설명하는 것이 특기입니다."</div>
+        </div>
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:#ff6b6b;margin-bottom:8px;">비평가 페르소나</div>
+          <div class="code-box" style="font-size:11px;">"당신은 까다로운 시니어 개발자입니다.
+코드 리뷰 시 성능·보안·가독성을 엄격히 평가하며,
+칭찬보다 개선점을 먼저 지적하는 스타일입니다."</div>
+        </div>
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:#f5a623;margin-bottom:8px;">멀티 페르소나</div>
+          <div class="code-box" style="font-size:11px;">
+# 김 부장 (영업 15년, 낙관적, 현장 중심)
+# 이 박사 (시장조사, 데이터 중심, 신중)
+# 박 대표 (스타트업, 속도 중시, 리스크 감수)
+
+각자 찬반 의견을 제시하세요.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- T4: 마크다운 구조화 -->
+    <div id="t4" class="theory-panel" style="display:none;">
+      <div class="card" style="margin-bottom:16px;border-color:rgba(0,119,255,0.3);">
+        <p style="font-size:13px;color:var(--text2);line-height:1.7;">
+          AI는 텍스트를 <strong style="color:var(--text);">구조적으로 파싱</strong>합니다. 마크다운을 활용하면 역할·조건·출력형태가 명확히 구분되어 <strong style="color:var(--accent);">더 정확하고 일관된 응답</strong>을 이끌어냅니다.
+        </p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;" class="grid-3">
+
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:var(--accent);margin-bottom:8px;font-family:'JetBrains Mono',monospace;"># 헤더 — 프롬프트의 뼈대</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">섹션을 나눠 역할·작업·출력을 명확히 분리</p>
+          <div class="code-box" style="font-size:11px;">#역할
+당신은 10년 경력의 관세사입니다.
+#작업
+HS Code를 분류하세요.
+#출력형식
+JSON으로 반환하세요.</div>
+        </div>
+
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:#ffcb6b;margin-bottom:8px;font-family:'JetBrains Mono',monospace;">``` 코드블록 — 입력 데이터 격리</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">지시문과 데이터를 혼동하지 않게 분리</p>
+          <div class="code-box" style="font-size:11px;">아래 Python 코드의 버그를 찾아주세요
+
+```python
+def calculate_tax(price):
+    return price*0.1
+print("완료")  # 버그 위치
+```</div>
+        </div>
+
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:#79c0ff;margin-bottom:8px;font-family:'JetBrains Mono',monospace;">&gt; 인용문 — 핵심 강조</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">절대 지켜야 할 조건·중요한 맥락 부각</p>
+          <div class="code-box" style="font-size:11px;">&gt; 반드시 한국어로만 답변하세요
+&gt; 추측성 내용은 포함하지 마세요
+&gt; 불확실한 세율은 "세관 확인 필요"로 표기</div>
+        </div>
+
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:#f5a623;margin-bottom:8px;font-family:'JetBrains Mono',monospace;">- 목록 — 조건·제약 나열</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">제약조건을 명확하게 목록화</p>
+          <div class="code-box" style="font-size:11px;">## 제약조건
+- 답변은 500자 이내
+- 전문 용어 사용 시 괄호 설명 추가
+- 불확실한 내용은 "확인 필요" 표시
+- 예시는 무역 도메인에서 선택</div>
+        </div>
+
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:#c3e88d;margin-bottom:8px;font-family:'JetBrains Mono',monospace;">| 표 — 입출력 구조 예시</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">예시 데이터를 구조적으로 제시</p>
+          <div class="code-box" style="font-size:11px;">## 예시
+| 입력 품목  | HS Code | 관세율 |
+| 면 티셔츠  | 6109.10 |  13%  |
+| 블라우스   | 6110.10 |  14%  |
+| 데님 바지  | 6111.10 |  15%  |</div>
+        </div>
+
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:#f78c6c;margin-bottom:8px;font-family:'JetBrains Mono',monospace;">**굵게** / *기울임* — 변수 강조</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">핵심 변수와 강조 표현에 활용</p>
+          <div class="code-box" style="font-size:11px;">**[분석대상]**에 대해
+*반드시* 아래 순서대로 분석하세요.
+
+**[제품명]**: 스테인리스 주방용품
+**[수출국]**: 한국
+**[수입국]**: 베트남</div>
+        </div>
+      </div>
+
+      <!-- 종합 예시 -->
+      <div class="card" style="border-color:rgba(0,212,170,0.3);">
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;">
+          <i class="fa-solid fa-star mr-1"></i>종합 활용 예시 — FTA 분석 프롬프트
+        </div>
+        <div class="code-box">
+#역할
+당신은 중소기업 수출 컨설턴트입니다.
+FTA 활용과 원산지 증명 전문가입니다.
+
+#작업
+아래 수출 품목에 대한 FTA 적용 가능 여부를 분석하세요.
+"""
+품목명: 스테인리스 주방용품
+수출국: 한국 / 수입국: 베트남
+"""
+
+#분석 기준
+- 한-아세안 FTA 협정세율 적용 여부
+- 원산지 결정 기준 충족 여부
+- 필요 서류 목록
+
+#제약 조건
+&gt; 확실하지 않은 세율은 반드시 "세관 확인 필요"로 표기
+
+#출력 형식
+```json
+{
+  "FTA_적용": true/false,
+  "협정세율": "",
+  "일반세율": "",
+  "필요서류": []
+}
+```</div>
+      </div>
+    </div>
+
+    <!-- T5: 표현 강도 -->
+    <div id="t5" class="theory-panel" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="grid-2">
+        <div class="card">
+          <div style="font-size:14px;font-weight:700;margin-bottom:16px;color:var(--accent2);">강도 단계별 표현</div>
+          <div style="display:grid;gap:10px;">
+            <div style="background:var(--surface2);padding:12px;border-radius:8px;border-left:3px solid #7ee787;">
+              <div style="font-size:11px;font-weight:700;color:#7ee787;margin-bottom:4px;">1단계 — 권장</div>
+              <div style="font-size:12px;color:var(--text2);">가능하면, 되도록, ~하는 편이 좋습니다</div>
+              <div class="code-box" style="font-size:11px;margin-top:8px;">가능하면 한국어로 답변해 주세요</div>
+            </div>
+            <div style="background:var(--surface2);padding:12px;border-radius:8px;border-left:3px solid #f5a623;">
+              <div style="font-size:11px;font-weight:700;color:#f5a623;margin-bottom:4px;">2단계 — 일반</div>
+              <div style="font-size:12px;color:var(--text2);">~하세요, ~해주세요</div>
+              <div class="code-box" style="font-size:11px;margin-top:8px;">한국어로 답변해 주세요</div>
+            </div>
+            <div style="background:var(--surface2);padding:12px;border-radius:8px;border-left:3px solid #ff6b6b;">
+              <div style="font-size:11px;font-weight:700;color:#ff6b6b;margin-bottom:4px;">3단계 — 강조</div>
+              <div style="font-size:12px;color:var(--text2);">반드시, 꼭, 항상</div>
+              <div class="code-box" style="font-size:11px;margin-top:8px;">반드시 한국어로 답변해 주세요</div>
+            </div>
+            <div style="background:var(--surface2);padding:12px;border-radius:8px;border-left:3px solid #da1c5c;">
+              <div style="font-size:11px;font-weight:700;color:#da1c5c;margin-bottom:4px;">4단계 — 절대</div>
+              <div style="font-size:12px;color:var(--text2);">절대로, 어떤 경우에도, 예외 없이</div>
+              <div class="code-box" style="font-size:11px;margin-top:8px;">어떤 경우에도 영어를 사용하지 마세요</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-size:14px;font-weight:700;margin-bottom:16px;color:var(--accent2);">우선순위 계층</div>
+          <div style="display:grid;gap:10px;margin-bottom:16px;">
+            <div style="background:rgba(218,28,92,0.08);border:1px solid rgba(218,28,92,0.3);padding:12px;border-radius:8px;">
+              <div style="font-size:11px;font-weight:700;color:#da1c5c;margin-bottom:6px;">★ 최우선 — 절대 조건</div>
+              <div style="font-size:12px;color:var(--text2);">• 개인정보 절대 출력하지 않는다<br>• 사실과 다른 내용을 생성하지 않는다</div>
+            </div>
+            <div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.3);padding:12px;border-radius:8px;">
+              <div style="font-size:11px;font-weight:700;color:#f5a623;margin-bottom:6px;">★★ 중요 — 일반 조건</div>
+              <div style="font-size:12px;color:var(--text2);">• 답변은 500자 이내로 작성<br>• 전문 용어는 괄호 설명 추가</div>
+            </div>
+            <div style="background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.3);padding:12px;border-radius:8px;">
+              <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;">★★★ 선택 — 권장 조건</div>
+              <div style="font-size:12px;color:var(--text2);">• 가능하면 실제 사례 포함<br>• 표나 목록을 활용하면 더 좋음</div>
+            </div>
+          </div>
+
+          <hr class="divider"/>
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text2);">톤(말투) 지정 — 동일 원문, 다른 반응</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="example-pill" style="text-align:center;">😄 유머러스한</div>
+            <div class="example-pill" style="text-align:center;">💔 감정적인</div>
+            <div class="example-pill" style="text-align:center;">🤗 따뜻한</div>
+            <div class="example-pill" style="text-align:center;">😏 아이러니한</div>
+            <div class="example-pill" style="text-align:center;">💕 로맨틱한</div>
+            <div class="example-pill" style="text-align:center;">📊 공식적인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- T6: 대안 접근법 패턴 -->
+    <div id="t6" class="theory-panel" style="display:none;">
+      <div class="card" style="margin-bottom:16px;border-color:rgba(245,166,35,0.3);">
+        <p style="font-size:13px;color:var(--text2);line-height:1.7;">
+          일반 프롬프트는 AI가 임의로 하나를 선택하지만, <strong style="color:var(--text);">대안 패턴</strong>을 쓰면 <strong style="color:var(--accent4);">선택권이 사람에게 돌아옵니다.</strong>
+        </p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;" class="grid-2">
+
+        <div class="type-card">
+          <div style="font-size:13px;font-weight:700;color:#f5a623;margin-bottom:10px;">패턴 1: 단순 나열형</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">방법을 최소 4가지 이상 나열, 각각의 핵심원리·적합상황·단점·난이도 포함</p>
+          <div class="code-box" style="font-size:11px;">## 방법 {번호}: {이름}
+- 핵심원리: {한 줄}
+- 적합한 상황: {언제 쓰면 좋은가}
+- 단점: {주의할 점}
+- 난이도: {초급/중급/고급}
+
+문제: 수출통관 서류 자동 생성</div>
+        </div>
+
+        <div class="type-card">
+          <div style="font-size:13px;font-weight:700;color:#79c0ff;margin-bottom:10px;">패턴 2: 축 기반 비교형</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">여러 방법을 같은 기준(축)으로 표 비교 → 의사결정 지원</p>
+          <div class="code-box" style="font-size:11px;">평가 기준:
+- 개발 속도(빠름/보통/느림)
+- 유지 보수 난이도(쉬움/보통/어려움)
+- 비용(무료/저비용/고비용)
+- 확장성(높음/보통/낮음)
+
+비교: FastAPI, Django, Flask, Express</div>
+        </div>
+
+        <div class="type-card">
+          <div style="font-size:13px;font-weight:700;color:#c3e88d;margin-bottom:10px;">패턴 3: 상황별 분기형</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">독립적인 각 상황에 최적 대안 추천 (1~4순위)</p>
+          <div class="code-box" style="font-size:11px;">상황 A: 스타트업, 개발자 1명, 빠른 MVP
+상황 B: 무역데이터 10년치, 복잡한 통계
+상황 C: 실시간 환율, 초당 1,000건 업데이트
+상황 D: 비정형 통관 데이터 저장
+
+각 상황: 1~4순위 DB 추천 + 이유</div>
+        </div>
+
+        <div class="type-card">
+          <div style="font-size:13px;font-weight:700;color:#f78c6c;margin-bottom:10px;">패턴 4: 역발상 대안형</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">일반 해결책 외에 "하지 않는" 선택지와 "문제 자체 재정의"도 포함</p>
+          <div class="code-box" style="font-size:11px;">문제: 수입 통관 처리 시간이 너무 길다.
+
+일반적인 해결책 3가지
++ "하지 않는" 선택지 1가지
++ "문제 재정의" 대안 1가지
+
+→ 총 5가지 제시하세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+    <!-- T7: 레시피 패턴 -->
+    <div id="t7" class="theory-panel" style="display:none;">
+      <div class="card" style="margin-bottom:16px;border-color:rgba(0,212,170,0.3);">
+        <p style="font-size:13px;color:var(--text2);line-height:1.7;">
+          목표 달성을 위한 <strong style="color:var(--text);">단계별 행동 절차</strong>를 명확하게 받는 패턴.
+          일반 질문이 방향만 알려준다면, 레시피 패턴은 <strong style="color:var(--accent);">순서 있는 행동 지침</strong>을 만들어줍니다.
+        </p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" class="grid-2">
+        <div class="card">
+          <div style="font-size:13px;font-weight:700;color:var(--accent3);margin-bottom:10px;">❌ 일반 질문</div>
+          <div class="code-box" style="font-size:11.5px;">수출 자동화 어떻게 해?
+→ 개념 설명, 두루뭉술한 방향만 나옴</div>
+        </div>
+        <div class="card">
+          <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">✅ 레시피 패턴</div>
+          <div class="code-box" style="font-size:11.5px;">수출 자동화를 위한 단계별 절차를 주세요
+→ 순서 있는 행동 지침으로 바로 실행 가능</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="grid-2">
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:var(--accent);margin-bottom:8px;">기본 레시피 패턴</div>
+          <div class="code-box" style="font-size:11px;">#목표
+Python 초보자가 무역 HS Code
+자동 분류 프로그램 만들기
+
+#현재 상태
+- Python 설치만 되어 있음
+- 프로그램 경험 없음
+- 엑셀로 품목 데이터 500개 보유
+
+#요청
+단계별 레시피를 작성하세요
+각 단계 형식:
+
+##STEP{번호}: {단계명}
+- 할 일: {구체적 행동}
+- 소요 시간: {예상 기간}
+- 완료 기준: {이것만 되면 다음으로}
+- 주의사항: {흔한 실수}</div>
+        </div>
+        <div style="display:grid;gap:12px;">
+          <div class="type-card">
+            <div style="font-size:12px;font-weight:800;color:#f5a623;margin-bottom:8px;">분기 포함 레시피</div>
+            <div class="code-box" style="font-size:11px;">무역 계약 클레임 처리 절차를
+단계별로 작성하세요.
+각 단계에서 발생할 수 있는
+분기 상황도 포함하세요.
+
+형식:
+STEP N. {행동}
+- 정상: {이 결과면 다음 단계로}
+- 비정상: {이 결과면 어떻게 대응}</div>
+          </div>
+          <div class="type-card">
+            <div style="font-size:12px;font-weight:800;color:#79c0ff;margin-bottom:8px;">체크리스트 레시피</div>
+            <div class="code-box" style="font-size:11px;">신규 수출 거래처와의 첫 계약
+체결을 위한 실행 체크리스트
+작성하세요.
+
+형식:
+[ ] {행동} - {이유 또는 주의사항}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- T8: 뒤집힌 상호작용 패턴 -->
+    <div id="t8" class="theory-panel" style="display:none;">
+      <div class="card" style="margin-bottom:16px;border-color:rgba(123,159,255,0.3);">
+        <p style="font-size:13px;color:var(--text2);line-height:1.7;">
+          보통은 사람이 묻고 AI가 답하지만, <strong style="color:var(--text);">뒤집힌 상호작용 패턴</strong>은
+          <strong style="color:var(--accent2);">AI가 먼저 질문하고 사용자가 답합니다.</strong>
+          다음에 무엇을 해야 할지 고민하는 시간을 줄이고, AI가 충분한 정보를 모은 뒤 최적의 결과물을 만들어냅니다.
+        </p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="grid-2">
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:var(--accent2);margin-bottom:8px;">방법 1 — 질문 먼저, 답은 나중</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">모든 정보를 한 번에 수집 후 결과물 작성</p>
+          <div class="code-box" style="font-size:11px;">수출 제안서를 작성해 주세요.
+
+바로 작성하지 말고,
+먼저 아래 항목들을 질문해서
+제 답변을 모두 수집한 후 작성하세요.
+
+수집이 필요한 정보:
+- 제품정보
+- 타깃 바이어
+- 핵심 강점
+- 가격 정책
+- 납기 조건</div>
+          <div class="theory-block" style="margin-top:10px;border-color:var(--accent2);">
+            <div style="font-size:11px;color:var(--text2);">→ AI가 5가지를 한꺼번에 질문 → 답변 후 완성된 제안서 생성</div>
+          </div>
+        </div>
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:#c3e88d;margin-bottom:8px;">방법 2 — 한 번에 하나씩</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">질문을 하나씩 순서대로 → 대화형 수집</p>
+          <div class="code-box" style="font-size:11px;">python 학습 계획서를 만들어 주세요.
+
+단, 한번에 하나의 질문만 하고
+제 답변을 들은 뒤 다음 질문으로
+넘어가세요.
+
+5~7개 질문이 끝나면
+맞춤형 학습계획서를 작성해 주세요.</div>
+          <div class="theory-block" style="margin-top:10px;border-color:#c3e88d;">
+            <div style="font-size:11px;color:var(--text2);">→ 대화하듯 자연스럽게 정보 수집 → 맞춤 결과물 생성</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;border-color:rgba(0,212,170,0.3);">
+        <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;"><i class="fa-solid fa-star mr-1"></i>언제 사용하면 좋은가?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:12px;" class="grid-3">
+          <div class="theory-block" style="border-color:var(--accent);">내 상황을 AI에게 충분히 설명하기 어려울 때</div>
+          <div class="theory-block" style="border-color:var(--accent2);">맞춤형 결과물(계획서/제안서)이 필요할 때</div>
+          <div class="theory-block" style="border-color:#f5a623;">무엇부터 시작해야 할지 모를 때</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- T9: 인지 검증자 패턴 -->
+    <div id="t9" class="theory-panel" style="display:none;">
+      <div class="card" style="margin-bottom:16px;border-color:rgba(255,107,107,0.3);">
+        <p style="font-size:13px;color:var(--text2);line-height:1.7;">
+          복잡한 질문을 바로 던지면 오류·누락이 발생하기 쉽습니다.
+          <strong style="color:var(--text);">인지 검증자 패턴</strong>은 AI가 복잡한 질문을
+          <strong style="color:var(--accent3);">하위 질문으로 분해 → 각각 검증 → 통합</strong>하는 방식입니다.
+        </p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" class="grid-2">
+        <div class="card">
+          <div style="font-size:12px;font-weight:700;color:var(--accent3);margin-bottom:8px;">❌ 일반 패턴</div>
+          <div class="code-box" style="font-size:11.5px;">복잡한 질문 입력
+→ 즉각 대답 (오류·누락 가능성 높음)</div>
+        </div>
+        <div class="card">
+          <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;">✅ 인지 검증자 패턴</div>
+          <div class="code-box" style="font-size:11.5px;">복잡한 질문 입력
+→ AI가 하위 질문 분해
+→ 각 질문을 순서대로 검증
+→ 검증된 답을 통합</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="grid-2">
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:var(--accent3);margin-bottom:8px;">방법 1 — 명시적 분해 요청</div>
+          <div class="code-box" style="font-size:11px;">아래 질문에 바로 답하지 말고,
+먼저 이 질문을 정확히 답하기 위해
+필요한 하위 질문을 3~5개 도출하세요.
+
+각 하위 질문에 순서대로 답한 뒤
+최종 통합 답변을 제시하세요.
+
+질문:
+"Python으로 무역 데이터 자동화를
+구축할 때, 클라우드 서버가 필요한가?"</div>
+        </div>
+        <div class="type-card">
+          <div style="font-size:12px;font-weight:800;color:#f78c6c;margin-bottom:8px;">방법 2 — 전문가 검증 방식</div>
+          <div class="code-box" style="font-size:11px;">{전문 분야} 전문가처럼
+이 문제를 다루세요.
+
+확신이 없는 부분은
+가정으로 명시하고,
+각 판단의 근거를 함께 제시하면서
+단계적으로 결론에 도달하세요.
+
+질문:
+"우리 회사가 베트남에 생산 법인을
+설립하면 세금·인력·물류 측면에서
+유리한가요?"</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;border-color:rgba(0,212,170,0.3);">
+        <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;"><i class="fa-solid fa-star mr-1"></i>이용자 페르소나 설계 체크리스트</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;" class="grid-2">
+          <div class="theory-block" style="border-color:var(--accent2);">이 사람의 직업과 역할은?</div>
+          <div class="theory-block" style="border-color:var(--accent2);">이 주제에 대한 사전 지식 수준은?</div>
+          <div class="theory-block" style="border-color:var(--accent2);">이 정보로 무엇을 결정·실행할 예정인가?</div>
+          <div class="theory-block" style="border-color:var(--accent2);">지금 어떤 상태인가? (급함/여유)</div>
+          <div class="theory-block" style="border-color:var(--accent2);">얼마나 긴 답변을 읽을 여유가 있는가?</div>
+          <div class="theory-block" style="border-color:var(--accent2);">가장 두려워하는/원하는 것은?</div>
+          <div class="theory-block" style="border-color:var(--accent2);">절대 쓰면 안 되는 언어나 표현이 있나?</div>
+          <div class="theory-block" style="border-color:var(--accent2);">어떤 형태의 결과물을 원하는가?</div>
+        </div>
+      </div>
+    </div>
+
+  <!-- ===================== PANEL: BUILDER ===================== -->
+  <div id="panel-builder" class="panel">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" class="grid-2">
+
+      <!-- Left: Builder inputs -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <h2 class="display" style="font-size:18px;font-weight:700;">Prompt Builder</h2>
+            <p style="font-size:12px;color:var(--text2);margin-top:2px;">입력·처리·출력을 구조화</p>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <select id="category" class="inp" style="width:auto;padding:8px 12px;resize:none;">
+              <option value="General">General</option>
+              <option value="Trade">Trade</option>
+              <option value="Compliance">Compliance</option>
+              <option value="Dev">Dev</option>
+              <option value="Writing">Writing</option>
+              <option value="Research">Research</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Template pills -->
+        <div class="card" style="padding:14px;">
+          <div class="label-sm" style="margin-bottom:8px;">빠른 템플릿 로드</div>
+          <div style="display:flex;flex-wrap:wrap;">
+            <button class="example-pill" onclick="loadTemplate('tariff')">관세·규제 조회</button>
+            <button class="example-pill" onclick="loadTemplate('hs')">HS Code 분류</button>
+            <button class="example-pill" onclick="loadTemplate('invoice')">인보이스 생성</button>
+            <button class="example-pill" onclick="loadTemplate('risk')">수출 리스크</button>
+            <button class="example-pill" onclick="loadTemplate('email')">바이어 이메일</button>
+            <button class="example-pill" onclick="loadTemplate('compare')">축 기반 비교</button>
+            <button class="example-pill" onclick="loadTemplate('persona')">페르소나 생성</button>
+            <button class="example-pill" onclick="loadTemplate('summary')">요약·체크리스트</button>
+          </div>
+        </div>
+
+        <!-- Context -->
+        <div>
+          <label class="label-sm">① Context — 배경·역할</label>
+          <textarea id="p_context" class="inp" rows="4" placeholder="# 당신은 20년 경력의 관세사입니다.&#10;FTA 협정세율과 원산지 규정 전문가입니다."></textarea>
+        </div>
+
+        <!-- Inputs -->
+        <div>
+          <label class="label-sm">② Inputs — 변수·데이터</label>
+          <input id="p_vars" class="inp" type="text" placeholder="{product_name}, {hs_code}, {country}  ← 중괄호로 변수 표시" style="resize:none;"/>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">💡 {중괄호}로 변수를 표시하면 함수형 프롬프트로 자동 인식됩니다.</div>
+        </div>
+
+        <!-- Instruction -->
+        <div>
+          <label class="label-sm">③ Instruction — 지시·규칙</label>
+          <textarea id="p_inst" class="inp" rows="4" placeholder="관세율과 규제사항, 필요서류를 표준 JSON 형식으로 정리해줘."></textarea>
+        </div>
+
+        <!-- Output format -->
+        <div>
+          <label class="label-sm">④ Output Format — 출력 형식</label>
+          <textarea id="p_format" class="inp mono" rows="5" placeholder='```json&#10;{&#10;  "관세율": "",&#10;  "규제사항": [],&#10;  "필요서류": []&#10;}&#10;```'></textarea>
+        </div>
+
+        <!-- Tone slider -->
+        <div class="card" style="padding:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <label class="label-sm" style="margin-bottom:0;">⑤ 지시 강도 (Tone)</label>
+            <span id="toneLabel" class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">권장 (Lv.2)</span>
+          </div>
+          <input id="toneSlider" type="range" min="1" max="4" value="2" oninput="syncTone(); debouncedAssemble();" style="--val:50%;"/>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;">
+            <span style="font-size:10px;color:var(--text3);">부드럽게</span>
+            <span style="font-size:10px;color:var(--text3);">권장</span>
+            <span style="font-size:10px;color:var(--text3);">강하게</span>
+            <span style="font-size:10px;color:var(--text3);">절대</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-primary" onclick="assemblePrompt()" style="flex:1;">
+            <i class="fa-solid fa-bolt mr-1"></i>프롬프트 조합
+          </button>
+          <button class="btn-ghost" onclick="savePrompt()">
+            <i class="fa-solid fa-save mr-1"></i>저장
+          </button>
+          <button class="btn-ghost" onclick="clearBuilder()">
+            <i class="fa-solid fa-rotate-left mr-1"></i>초기화
+          </button>
+        </div>
+
+        <!-- AI Feedback 버튼 -->
+        <button class="btn-ai" id="btnAiFeedback" onclick="aiAnalyzePrompt()" style="width:100%;justify-content:center;">
+          <i class="fa-solid fa-magnifying-glass-chart"></i> AI 품질 분석 · 개선 제안 받기
+        </button>
+
+        <!-- AI Feedback 결과 패널 -->
+        <div id="aiFeedbackPanel" class="ai-panel">
+          <div class="ai-panel-header">
+            <div class="spinner" id="feedbackSpinner" style="display:none;"></div>
+            <i class="fa-solid fa-brain" id="feedbackIcon"></i>
+            <span>AI 프롬프트 분석 결과</span>
+            <button onclick="$('aiFeedbackPanel').classList.remove('visible')"
+              style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div id="aiFeedbackContent" class="md-render" style="font-size:12.5px;line-height:1.8;"></div>
+        </div>
+
+        <div style="font-size:11px;color:var(--text3);text-align:right;" id="draftState">자동저장 대기 중...</div>
+      </div>
+
+      <!-- Right: Output -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <h2 class="display" style="font-size:18px;font-weight:700;">Output</h2>
+            <p style="font-size:12px;color:var(--text2);margin-top:2px;" id="editingLabel">새 프롬프트</p>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="viewMode" class="inp" style="width:auto;padding:7px 12px;resize:none;font-size:12px;" onchange="syncView()">
+              <option value="raw">Raw</option>
+              <option value="md">Preview</option>
+            </select>
+            <button class="btn-ghost" onclick="copyOutput()" style="white-space:nowrap;">
+              <i class="fa-regular fa-copy mr-1"></i>복사
+            </button>
+          </div>
+        </div>
+
+        <div id="outputRaw" class="code-box" style="min-height:520px;overflow-y:auto;">
+프롬프트 조합 버튼을 눌러 시작하세요.</div>
+
+        <div id="outputMd" class="card md-render" style="min-height:520px;overflow-y:auto;display:none;">
+          Preview 모드 — Raw 탭에서 프롬프트를 생성하세요.
+        </div>
+
+        <!-- Quick stats -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div class="card" style="padding:10px 14px;flex:1;text-align:center;">
+            <div style="font-size:18px;font-weight:800;color:var(--accent);" id="charCount">0</div>
+            <div style="font-size:10px;color:var(--text3);">글자 수</div>
+          </div>
+          <div class="card" style="padding:10px 14px;flex:1;text-align:center;">
+            <div style="font-size:18px;font-weight:800;color:#0077ff;" id="lineCount">0</div>
+            <div style="font-size:10px;color:var(--text3);">줄 수</div>
+          </div>
+          <div class="card" style="padding:10px 14px;flex:1;text-align:center;">
+            <div style="font-size:18px;font-weight:800;color:#f5a623;" id="structureScore">—</div>
+            <div style="font-size:10px;color:var(--text3);">구조 점수</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PANEL: EXAMPLES ===================== -->
+  <div id="panel-examples" class="panel">
+    <div style="margin-bottom:20px;">
+      <h2 class="display" style="font-size:20px;font-weight:700;">실습 예시 갤러리</h2>
+      <p style="color:var(--text2);font-size:13px;margin-top:4px;">실제 대화에서 사용된 프롬프트 예시 — 클릭하면 빌더로 로드</p>
+    </div>
+
+    <div style="display:grid;gap:16px;">
+
+      <!-- Example 1 -->
+      <div class="card" style="border-color:rgba(0,212,170,0.3);">
+        <div onclick="toggleAccordion(this)" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">함수형</span>
+            <span class="badge" style="background:rgba(0,119,255,0.1);color:#0077ff;">Trade</span>
+            <span style="font-size:14px;font-weight:700;">소고기 미국 수출 — 관세·규제 조회</span>
+          </div>
+          <i class="fa-solid fa-chevron-down accordion-arrow" style="color:var(--text3);"></i>
+        </div>
+        <div class="accordion-body">
+          <hr class="divider"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="grid-2">
+            <div>
+              <div class="label-sm">입력 프롬프트</div>
+              <div class="code-box" style="font-size:11.5px;">
+# 입력: {소고기}, {0201}, {미국}
+# 처리: 해당 국가의 관세율 및 수입 규제 조회
+# 출력: {
+    "관세율": "",
+    "규제사항": [],
+    "필요서류": []
+  }</div>
+            </div>
+            <div>
+              <div class="label-sm">AI 응답 요약 (Gemini)</div>
+              <div class="code-box" style="font-size:11.5px;color:#79c0ff;">
+{
+  "관세율": "0% (KORUS FTA)",
+  "규제사항": [
+    "FSIS 국가 자격 확인",
+    "시설 등록 (USDA 승인)",
+    "위생 요건 (구제역 비발생 증명)"
+  ],
+  "필요서류": [
+    "수출 위생 증명서",
+    "원산지 증명서 (C/O)",
+    "FDA 사전 수입 신고"
+  ]
+}</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn-ghost" onclick="loadToBuilder('tariff')">
+              <i class="fa-solid fa-arrow-right mr-1"></i>빌더로 열기
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example 2 -->
+      <div class="card" style="border-color:rgba(245,166,35,0.3);">
+        <div onclick="toggleAccordion(this)" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge" style="background:rgba(245,166,35,0.1);color:#f5a623;">퓨샷</span>
+            <span class="badge" style="background:rgba(0,119,255,0.1);color:#0077ff;">Trade</span>
+            <span style="font-size:14px;font-weight:700;">HS Code 분류 — 울 혼방 재킷</span>
+          </div>
+          <i class="fa-solid fa-chevron-down accordion-arrow" style="color:var(--text3);"></i>
+        </div>
+        <div class="accordion-body">
+          <hr class="divider"/>
+          <div class="code-box" style="font-size:11.5px;">
+** HS Code를 분류해주세요
+
+예시)
+품목: "면으로 만든 남성용 티셔츠" -> 6109.10
+품목: "폴리에스테르 소재 여성 블라우스" -> 6110.10
+품목: "아동용 데님 바지" -> 6111.10
+
+품목: "울 혼방 남성 재킷" -> HS Code?</div>
+          <div class="theory-block" style="margin-top:12px;border-color:#f5a623;">
+            <div style="font-size:12px;color:var(--text2);">
+              ✅ 정답: <strong style="color:var(--text);">6203.31</strong> — 울(혼방) 남성 재킷, 직물 기준<br>
+              ℹ️ 혼방이라도 중량 비율 가장 높은 소재 기준 → 울이 주재료면 6203.31
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example 3 -->
+      <div class="card" style="border-color:rgba(255,107,107,0.3);">
+        <div onclick="toggleAccordion(this)" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge" style="background:rgba(255,107,107,0.1);color:#ff6b6b;">이용자 페르소나</span>
+            <span class="badge" style="background:rgba(0,119,255,0.1);color:#0077ff;">Writing</span>
+            <span style="font-size:14px;font-weight:700;">중소기업 대표 — 첫 수출 3단계</span>
+          </div>
+          <i class="fa-solid fa-chevron-down accordion-arrow" style="color:var(--text3);"></i>
+        </div>
+        <div class="accordion-body">
+          <hr class="divider"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="grid-2">
+            <div>
+              <div class="label-sm">이용자 정보 프롬프트</div>
+              <div class="code-box" style="font-size:11.5px;">
+# 이용자 정보
+- 직책: 중소기업 대표 (직원 30명)
+- 수출경험: 국내 영업만 10년, 해외 수출 처음
+- 관심사: 리스크 최소화, 빠른 실행
+- 우려: "복잡하고 어려울 것 같다"
+- 시간: 바빠서 긴 글 읽지 않음
+
+# 지식
+첫 수출 준비 3단계를 설명하세요
+전문 용어는 최소화하고,
+각 단계는 3줄 이내로 작성하세요</div>
+            </div>
+            <div>
+              <div class="label-sm">AI 응답 요약</div>
+              <div style="display:grid;gap:8px;">
+                <div class="theory-block" style="border-color:var(--accent);">
+                  <div style="font-size:12px;font-weight:700;color:var(--accent);">1단계: 수출입번호 발급</div>
+                  <div style="font-size:11px;color:var(--text2);">관세청 홈페이지 or 관세사 위탁 → 하루면 완료</div>
+                </div>
+                <div class="theory-block" style="border-color:#0077ff;">
+                  <div style="font-size:12px;font-weight:700;color:#0077ff;">2단계: 안전한 결제 방법</div>
+                  <div style="font-size:11px;color:var(--text2);">T/T(전신환) + 무역보험으로 리스크 최소화</div>
+                </div>
+                <div class="theory-block" style="border-color:#f5a623;">
+                  <div style="font-size:12px;font-weight:700;color:#f5a623;">3단계: 포워딩 업체 선정</div>
+                  <div style="font-size:11px;color:var(--text2);">인보이스만 준비하면 통관까지 대신 처리</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example 4 -->
+      <div class="card" style="border-color:rgba(121,192,255,0.3);">
+        <div onclick="toggleAccordion(this)" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge" style="background:rgba(121,192,255,0.1);color:#79c0ff;">축 기반 비교</span>
+            <span class="badge" style="background:rgba(128,0,255,0.1);color:#a855f7;">Dev</span>
+            <span style="font-size:14px;font-weight:700;">FastAPI vs Django vs Flask vs Express — REST API 비교</span>
+          </div>
+          <i class="fa-solid fa-chevron-down accordion-arrow" style="color:var(--text3);"></i>
+        </div>
+        <div class="accordion-body">
+          <hr class="divider"/>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr style="background:var(--surface2);">
+                  <th style="padding:10px;border:1px solid var(--border);text-align:left;">평가 기준</th>
+                  <th style="padding:10px;border:1px solid var(--border);text-align:center;color:var(--accent);">FastAPI</th>
+                  <th style="padding:10px;border:1px solid var(--border);text-align:center;color:#0077ff;">Django</th>
+                  <th style="padding:10px;border:1px solid var(--border);text-align:center;color:#f5a623;">Flask</th>
+                  <th style="padding:10px;border:1px solid var(--border);text-align:center;color:#ff6b6b;">Express</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:9px;border:1px solid var(--border);color:var(--text2);">개발 속도</td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">빠름</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(128,128,128,0.1);color:var(--text3);">보통</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(128,128,128,0.1);color:var(--text3);">보통</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">빠름</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:9px;border:1px solid var(--border);color:var(--text2);">유지 보수</td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">쉬움</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(128,128,128,0.1);color:var(--text3);">보통</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(128,128,128,0.1);color:var(--text3);">보통</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(128,128,128,0.1);color:var(--text3);">보통</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:9px;border:1px solid var(--border);color:var(--text2);">비용</td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">무료</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">무료</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">무료</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">무료</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:9px;border:1px solid var(--border);color:var(--text2);">확장성</td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">높음</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(128,128,128,0.1);color:var(--text3);">보통</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(255,107,107,0.1);color:#ff6b6b;">낮음</span></td>
+                  <td style="padding:9px;border:1px solid var(--border);text-align:center;"><span class="badge" style="background:rgba(0,212,170,0.1);color:var(--accent);">높음</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="theory-block" style="margin-top:12px;border-color:var(--accent);">
+            <div style="font-size:12px;color:var(--text2);">
+              🏆 무역 데이터 API 서버 추천: <strong style="color:var(--accent);">FastAPI</strong> — Swagger 자동 생성, 비동기 지원, Pydantic 검증으로 무역 데이터 처리에 최적
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example 5: DB 추천 -->
+      <div class="card" style="border-color:rgba(195,232,141,0.3);">
+        <div onclick="toggleAccordion(this)" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge" style="background:rgba(195,232,141,0.1);color:#c3e88d;">상황별 분기</span>
+            <span class="badge" style="background:rgba(128,0,255,0.1);color:#a855f7;">Dev</span>
+            <span style="font-size:14px;font-weight:700;">상황별 최적 데이터베이스 추천</span>
+          </div>
+          <i class="fa-solid fa-chevron-down accordion-arrow" style="color:var(--text3);"></i>
+        </div>
+        <div class="accordion-body">
+          <hr class="divider"/>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;" class="grid-2">
+            <div class="theory-block" style="border-color:var(--accent);">
+              <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px;">상황 A — 스타트업 MVP</div>
+              <div style="font-size:11px;color:var(--text2);">🥇 PostgreSQL(Supabase) — 인증·API·DB 한 번에<br>🥈 MongoDB Atlas — 스키마 없이 빠르게<br>🥉 SQLite — 서버 설정 없이 시작</div>
+            </div>
+            <div class="theory-block" style="border-color:#0077ff;">
+              <div style="font-size:12px;font-weight:700;color:#0077ff;margin-bottom:6px;">상황 B — 10년 무역 데이터 통계</div>
+              <div style="font-size:11px;color:var(--text2);">🥇 PostgreSQL — 복잡한 조인·윈도우 함수<br>🥈 ClickHouse — 컬럼형, 집계 쿼리 압도적<br>🥉 BigQuery — 서버 없이 SQL로 페타바이트</div>
+            </div>
+            <div class="theory-block" style="border-color:#f5a623;">
+              <div style="font-size:12px;font-weight:700;color:#f5a623;margin-bottom:6px;">상황 C — 실시간 환율 초당 1,000건</div>
+              <div style="font-size:11px;color:var(--text2);">🥇 Redis — 인메모리, 초당 수만 건 처리<br>🥈 InfluxDB — 시계열 특화, 압축 저장<br>🥉 ScyllaDB — 대규모 고가용성</div>
+            </div>
+            <div class="theory-block" style="border-color:#ff6b6b;">
+              <div style="font-size:12px;font-weight:700;color:#ff6b6b;margin-bottom:6px;">상황 D — 비정형 통관 문서</div>
+              <div style="font-size:11px;color:var(--text2);">🥇 MongoDB — JSON 문서 저장 표준<br>🥈 Elasticsearch — 키워드 검색 강력<br>🥉 PostgreSQL(JSONB) — 정형+비정형 혼합</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== PANEL: ARCHIVE ===================== -->
+  <div id="panel-archive" class="panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h2 class="display" style="font-size:20px;font-weight:700;">My Prompt Archive</h2>
+        <p style="color:var(--text2);font-size:13px;margin-top:4px;">저장한 프롬프트 관리 — 검색·불러오기·삭제·Export</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="searchInp" class="inp" style="width:200px;resize:none;" placeholder="🔍 검색..." oninput="renderArchive()"/>
+        <select id="filterCat" class="inp" style="width:auto;resize:none;" onchange="renderArchive()">
+          <option value="ALL">전체</option>
+          <option value="General">General</option>
+          <option value="Trade">Trade</option>
+          <option value="Compliance">Compliance</option>
+          <option value="Dev">Dev</option>
+          <option value="Writing">Writing</option>
+          <option value="Research">Research</option>
+        </select>
+        <select id="sortOrder" class="inp" style="width:auto;resize:none;" onchange="renderArchive()">
+          <option value="new">최신순</option>
+          <option value="old">오래된순</option>
+          <option value="az">이름 A→Z</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="archiveList" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;"></div>
+  </div>
+
+</main>
+
+<script>
+// ==========================================
+// API KEY 관리 — config.js 파일 방식
+// ==========================================
+function getApiKey() {
+  if(typeof ANTHROPIC_CONFIG !== "undefined" &&
+     ANTHROPIC_CONFIG.apiKey &&
+     !ANTHROPIC_CONFIG.apiKey.includes("여기에_키_입력") &&
+     !ANTHROPIC_CONFIG.apiKey.includes("여기에_API_키를_입력하세요")) {
+    return ANTHROPIC_CONFIG.apiKey;
+  }
+  return "";
+}
+
+function openApiModal() {
+  const key = getApiKey();
+  const statusEl = $("apiModalStatus");
+  if(key) {
+    statusEl.style.background = "rgba(0,212,170,0.08)";
+    statusEl.style.border = "1px solid rgba(0,212,170,0.3)";
+    statusEl.style.color = "var(--accent)";
+    statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i>
+      API 키가 연결되어 있습니다.<br>
+      <span style="font-size:11px;color:var(--text3);">변경하려면 config.js 파일을 직접 수정 후 새로고침하세요.</span>`;
+  } else {
+    statusEl.style.background = "rgba(255,107,107,0.08)";
+    statusEl.style.border = "1px solid rgba(255,107,107,0.3)";
+    statusEl.style.color = "#ff6b6b";
+    statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>
+      API 키가 설정되지 않았습니다.<br>
+      <span style="font-size:11px;color:var(--text3);">아래 안내에 따라 config.js 파일을 수정해주세요.</span>`;
+  }
+  $("apiModal").classList.remove("hidden");
+}
+
+function closeApiModal() { $("apiModal").classList.add("hidden"); }
+
+function updateApiStatus(connected) {
+  $("apiBadge").className = "api-badge " + (connected?"connected":"disconnected");
+  $("apiDot").className   = "api-dot " + (connected?"on":"off");
+  $("apiStatus").textContent = connected ? "API 연결됨" : "API 미연결";
+}
+
+// ==========================================
+// CLAUDE API 호출
+// ==========================================
+async function callClaude(messages, system, maxTokens=1000) {
+  // config.js에서 설정한 프록시 URL
+  // (네가 3단계에서 APP_CONFIG.proxyUrl = "/.netlify/functions/claude" 해둔 상태)
+  const url = (typeof APP_CONFIG !== "undefined" && APP_CONFIG.proxyUrl)
+    ? APP_CONFIG.proxyUrl
+    : "/.netlify/functions/claude";
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      messages,
+      system,
+      max_tokens: maxTokens
+    })
+  });
+
+  const data = await res.json().catch(()=> ({}));
+
+  if (!res.ok) {
+    throw new Error(data.error || `HTTP ${res.status}`);
+  }
+
+  // netlify 함수가 { text: "..." } 형태로 내려주게 했으니
+  return data.text || "";
+}
+
+
+// 타이핑 효과 시뮬레이션 (CORS 이슈 없는 일반 fetch 사용)
+async function callClaudeStreaming(messages, system, targetEl, onDone) {
+  if(!getApiKey()) {
+    targetEl.innerHTML = `<span style="color:#ff6b6b;">⚠️ API 키가 설정되지 않았습니다.<br>우측 상단 <strong>API 미연결</strong> 버튼을 눌러 키를 입력해주세요.</span>`;
+    return;
+  }
+  targetEl.innerHTML = '<span class="ai-cursor"></span>';
+
+  try {
+    const fullText = await callClaude(messages, system, 1200);
+    // 타이핑 효과 시뮬레이션
+    await typewriterEffect(targetEl, fullText);
+    if(onDone) onDone(fullText);
+  } catch(e) {
+    targetEl.innerHTML = `<span style="color:#ff6b6b;">오류: ${esc(e.message)}</span>`;
+  }
+}
+
+// 타이핑 효과 (청크 단위로 렌더링)
+async function typewriterEffect(targetEl, fullText) {
+  const chunkSize = 8;
+  let current = "";
+  for(let i = 0; i < fullText.length; i += chunkSize) {
+    current += fullText.slice(i, i + chunkSize);
+    targetEl.innerHTML = `<div class="md-render">${mdRender(current)}</div><span class="ai-cursor"></span>`;
+    await new Promise(r => setTimeout(r, 16));
+  }
+  targetEl.innerHTML = `<div class="md-render">${mdRender(fullText)}</div>`;
+}
+
+// ==========================================
+// AI 기능 1: 이론 심화 설명
+// ==========================================
+const theoryMeta = {
+  t1:{ title:"프롬프트 3가지 유형", topic:"서술형·지침형·함수형 프롬프트의 개념과 차이" },
+  t2:{ title:"제로샷·원샷·퓨샷 기법", topic:"Zero-Shot/One-Shot/Few-Shot 프롬프팅 기법" },
+  t3:{ title:"페르소나 패턴", topic:"AI 페르소나 설계 4요소 및 멀티 페르소나 패턴" },
+  t4:{ title:"마크다운 구조화", topic:"마크다운(#헤더/코드블록/인용문/표)을 활용한 프롬프트 구조화" },
+  t5:{ title:"표현 강도·우선순위 조절", topic:"프롬프트 지시 강도 4단계와 우선순위 계층 설계" },
+  t6:{ title:"대안 접근법 패턴", topic:"단순나열·축비교·상황분기·역발상 4가지 대안 패턴" },
+  t7:{ title:"레시피 패턴", topic:"목표 달성을 위한 단계별 레시피 프롬프트 패턴 (분기·체크리스트 포함)" },
+  t8:{ title:"뒤집힌 상호작용 패턴", topic:"AI가 먼저 질문하고 사용자가 답하는 역방향 상호작용 패턴" },
+  t9:{ title:"인지 검증자 패턴", topic:"복잡한 질문을 하위 질문으로 분해·검증·통합하는 패턴과 이용자 페르소나 체크리스트" },
+};
+let currentTheoryId = "t1";
+
+async function aiExplainCurrentTheory() {
+  if(!getApiKey()) { openApiModal(); return; }
+  const meta = theoryMeta[currentTheoryId];
+  $("explainTitle").textContent = meta.title + " — AI 심화 설명";
+  $("explainContent").innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--text3);"><div class="spinner"></div> 설명을 생성 중입니다...</div>';
+  $("aiExplainModal").classList.remove("hidden");
+
+  const system = `당신은 무역 실무와 AI 프롬프트 엔지니어링 전문가입니다.
+취업 준비 중인 무역·IT 관심 대학생에게 개념을 설명합니다.
+마크다운을 활용해 구조적으로 작성하고, 반드시 무역 실무 예시를 포함하세요.`;
+
+  await callClaudeStreaming(
+    [{role:"user", content:`"${meta.topic}"에 대해 다음 구조로 심화 설명해주세요:
+
+## 핵심 원리
+(한 단락으로 쉽게 설명)
+
+## 왜 중요한가?
+(무역 실무에서의 실질적 효과)
+
+## 실전 예시
+(실제로 쓸 수 있는 무역 관련 프롬프트 예시 코드 2개 포함)
+
+## 자주 하는 실수
+(초보자가 놓치는 포인트 2~3가지)
+
+## 핵심 요약
+(3줄 이내 bullet 포인트)`}],
+    system,
+    $("explainContent")
+  );
+}
+
+function closeExplainModal() { $("aiExplainModal").classList.add("hidden"); }
+
+// ==========================================
+// AI 기능 2: 프롬프트 품질 분석
+// ==========================================
+async function aiAnalyzePrompt() {
+  if(!getApiKey()) { openApiModal(); return; }
+  const prompt = $("outputRaw").textContent;
+  if(!prompt || prompt.includes("프롬프트 조합 버튼")) {
+    toast("먼저 프롬프트를 조합해주세요", "#f5a623"); return;
+  }
+
+  const panel = $("aiFeedbackPanel");
+  const content = $("aiFeedbackContent");
+  const spinner = $("feedbackSpinner");
+  const icon = $("feedbackIcon");
+
+  panel.classList.add("visible");
+  spinner.style.display = "inline-block";
+  icon.style.display = "none";
+  content.innerHTML = '<span style="color:var(--text3);">분석 중...</span>';
+
+  const system = `당신은 프롬프트 엔지니어링 전문가입니다.
+제공된 프롬프트를 분석하고 실질적인 개선 방향을 제시하세요.
+한국어로 응답하고, 마크다운을 활용해 명확하게 구조화하세요.`;
+
+  await callClaudeStreaming(
+    [{role:"user", content:`아래 프롬프트를 분석해주세요:\n\n\`\`\`\n${prompt}\n\`\`\`\n\n다음 항목으로 평가해주세요:\n\n## 📊 품질 평가 (★ 1~5)\n- 구조 명확성 (#헤더 활용 여부):\n- 역할 정의 (페르소나 설정):\n- 지시 구체성:\n- 출력 형식 명시:\n- 변수/데이터 격리:\n\n## ✅ 잘된 점\n(2~3가지)\n\n## ⚠️ 개선이 필요한 점\n(가장 중요한 2가지)\n\n## 💡 개선 제안 (코드 포함)\n(수정 전 → 수정 후 형태로 1~2개)`}],
+    system,
+    content,
+    () => { spinner.style.display="none"; icon.style.display="inline"; }
+  );
+}
+
+// ==========================================
+// DATA & STATE
+// ==========================================
+const KEY_ARCHIVE = "tplab_v3_prompts";
+const KEY_DRAFT   = "tplab_v3_draft";
+
+const toneMap = {
+  1: { label:"부드럽게 (Lv.1)", prefix:"가능하면", suffix:"하는 편이 좋습니다", color:"#7ee787", pct:"0%" },
+  2: { label:"권장 (Lv.2)", prefix:"되도록", suffix:"해주세요", color:"#f5a623", pct:"33%" },
+  3: { label:"강하게 (Lv.3)", prefix:"반드시", suffix:"하세요", color:"#ff6b6b", pct:"67%" },
+  4: { label:"절대 (Lv.4)", prefix:"어떠한 경우에도", suffix:"예외 없이 준수하세요", color:"#da1c5c", pct:"100%" },
+};
+
+const templates = {
+  tariff: {
+    category:"Trade",
+    ctx:"# 역할\n당신은 무역 규제·관세 리서치 담당자입니다.\n\n# 원칙\n추정하지 말고, 불확실하면 추가 확인 항목을 함께 제시합니다.",
+    vars:"{product_name}, {hs_code}, {export_country}, {import_country}",
+    inst:"입력값 기준으로 수입국의 관세(MFN/FTA 구분)와 비관세 규제(인증/검역/라벨), 필요 서류를 표준 포맷으로 정리해주세요.",
+    format:'```json\n{\n  "관세율": "",\n  "규제사항": [],\n  "필요서류": [],\n  "추가확인": []\n}\n```'
+  },
+  hs: {
+    category:"Trade",
+    ctx:"# 역할\n당신은 20년 경력의 관세사입니다.\n\n# 목표\n품목 설명을 근거로 HS Code 6자리를 분류합니다.",
+    vars:"{item_desc}, {material}, {knit_or_woven}",
+    inst:"아래 품목을 HS 해설서 원칙(주된 재질/본질적 특성)을 적용해 6자리 HS Code로 분류해 주세요. 근거(한 줄)와 함께 제시하세요.",
+    format:'```json\n{\n  "추천_HS6": "",\n  "근거": "",\n  "주의사항": []\n}\n```'
+  },
+  invoice: {
+    category:"Trade",
+    ctx:"# 역할\n당신은 무역 서류 자동화 담당자입니다.\n\n# 목표\n상업송장 필수 항목을 누락 없이 구조화합니다.",
+    vars:"{seller}, {buyer}, {incoterms}, {currency}, {items}, {ship_from}, {ship_to}",
+    inst:"상업송장(Commercial Invoice) 초안을 JSON으로 생성하세요. 필수 필드 누락이 있으면 '추가확인'에 넣어 주세요.",
+    format:'```json\n{\n  "invoice_no": "",\n  "seller": {},\n  "buyer": {},\n  "incoterms": "",\n  "items": [],\n  "total": 0,\n  "additional_checks": []\n}\n```'
+  },
+  risk: {
+    category:"Compliance",
+    ctx:"# 역할\n당신은 수출 리스크 컨설턴트입니다.\n\n# 목표\n첫 수출 기업이 바로 실행 가능한 체크리스트를 받도록 합니다.",
+    vars:"{product}, {destination_country}, {payment_term}, {buyer_profile}",
+    inst:"리스크를 '대금회수/통관규제/물류/계약' 4축으로 나누고, 각 축마다 1)핵심리스크 2)즉시조치 3)대안 1개를 제시하세요.",
+    format:"마크다운 표로 요약한 뒤, 마지막에 5줄 이내 실행 체크리스트를 주세요."
+  },
+  email: {
+    category:"Writing",
+    ctx:"# 역할\n당신은 해외영업 이메일 코치입니다.\n\n# 목표\n짧고 명확한 첫 제안 메일을 작성합니다.",
+    vars:"{company}, {product}, {usp}, {price}, {moq}, {certs}",
+    inst:"바이어에게 보내는 첫 제안 메일을 한국어/영어 2버전으로 써 주세요. 과장 없이, 다음 행동(샘플/미팅) 요청을 포함하세요.",
+    format:"제목/본문 형식으로 출력."
+  },
+  compare: {
+    category:"Research",
+    ctx:"# 역할\n당신은 기술 의사결정자입니다.\n\n# 목표\n대안들을 같은 기준으로 비교해 결정을 돕습니다.",
+    vars:"{options[]}, {criteria[]}",
+    inst:"각 대안을 평가 기준별로 비교표를 만들고, 최종 추천 1개와 이유 3줄을 제시하세요.",
+    format:"마크다운 표 + 결론"
+  },
+  persona: {
+    category:"General",
+    ctx:"# 페르소나 생성\n역할/경력/전문분야/말투를 명확히 정의합니다.",
+    vars:"{role}, {experience}, {expertise}, {tone}",
+    inst:"위 4요소를 한 문단 페르소나 지시문으로 조합하고, 이후 답변은 그 톤을 유지하세요.",
+    format:"```text\n[페르소나]\n...\n```"
+  },
+  summary: {
+    category:"General",
+    ctx:"# 역할\n당신은 학습 코치입니다.\n\n# 목표\n긴 내용을 재학습하기 쉽게 바꿉니다.",
+    vars:"{text}, {audience}",
+    inst:"핵심만 남기되 1)요약 2)오해하기 쉬운 포인트 3)체크리스트 5개 4)복습 퀴즈 3문항을 만들어 주세요.",
+    format:"마크다운"
+  }
+};
+
+let currentId = null;
+let debounceTimer = null;
+
+// ==========================================
+// UTILS
+// ==========================================
+const $ = id => document.getElementById(id);
+const nowISO = () => new Date().toISOString();
+const uid = () => Math.random().toString(16).slice(2) + "_" + Date.now().toString(16).slice(-4);
+const esc = s => (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+function getArchive() {
+  try { return JSON.parse(localStorage.getItem(KEY_ARCHIVE) || "[]"); } catch { return []; }
+}
+function setArchive(arr) { localStorage.setItem(KEY_ARCHIVE, JSON.stringify(arr)); }
+function updateArchCount() {
+  $("archCount").textContent = getArchive().length;
+}
+
+function toast(msg, clr="#00d4aa") {
+  const t = $("toast");
+  t.textContent = msg;
+  t.style.borderColor = clr;
+  t.style.color = clr;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+// ==========================================
+// PANEL & THEORY SWITCHING
+// ==========================================
+function switchPanel(name) {
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  $("panel-"+name).classList.add("active");
+  document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));
+  event.currentTarget.classList.add("active");
+  if(name === "archive") renderArchive();
+}
+
+// switchTheory는 API 섹션에서 이미 정의됨
+
+// ==========================================
+// ACCORDION
+// ==========================================
+function toggleAccordion(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector(".accordion-arrow");
+  const isOpen = body.classList.contains("open");
+  body.classList.toggle("open", !isOpen);
+  arrow.classList.toggle("open", !isOpen);
+}
+
+// ==========================================
+// TONE
+// ==========================================
+function syncTone() {
+  const v = Number($("toneSlider").value);
+  const t = toneMap[v];
+  $("toneLabel").textContent = t.label;
+  $("toneLabel").style.background = t.color + "22";
+  $("toneLabel").style.color = t.color;
+  $("toneSlider").style.setProperty("--val", t.pct);
+}
+
+// ==========================================
+// ASSEMBLE PROMPT
+// ==========================================
+function assemblePrompt() {
+  const ctx = ($("p_context").value || "").trim();
+  const vars = ($("p_vars").value || "").trim();
+  const inst = ($("p_inst").value || "").trim();
+  const fmt = ($("p_format").value || "").trim();
+  const v = Number($("toneSlider").value);
+  const t = toneMap[v];
+
+  const toneGuide = v > 1
+    ? `# 지시 강도\n> ${t.prefix} 아래 지시를 따르며, 이는 ${t.suffix}.\n\n`
+    : "";
+
+  const output = [
+    ctx,
+    vars ? `\n# 입력 데이터\n${vars}` : "",
+    `\n# 지시 사항\n${toneGuide}${inst}`,
+    fmt ? `\n# 출력 형식\n${fmt}` : "",
+    "\n# 추가 규칙\n> 불확실하면 '추가확인' 항목에 질문을 넣고, 추정하지 마세요.\n> 답변은 군더더기 없이 핵심만."
+  ].filter(Boolean).join("\n");
+
+  $("outputRaw").textContent = output;
+  $("outputMd").innerHTML = `<div class="md-render">${mdRender(output)}</div>`;
+
+  // stats
+  $("charCount").textContent = output.length.toLocaleString();
+  $("lineCount").textContent = output.split("\n").length;
+  const score = calcStructureScore(output);
+  $("structureScore").textContent = score + "/5";
+  $("structureScore").style.color = score >= 4 ? "#00d4aa" : score >= 2 ? "#f5a623" : "#ff6b6b";
+
+  saveDraft();
+}
+
+function debouncedAssemble() {
+  clearTimeout(debounceTimer);
+  $("draftState").textContent = "변경 감지됨...";
+  debounceTimer = setTimeout(assemblePrompt, 300);
+}
+
+function calcStructureScore(txt) {
+  let s = 0;
+  if (/^#\s/m.test(txt)) s++;
+  if (/```/.test(txt)) s++;
+  if (/^>/m.test(txt)) s++;
+  if (/^-\s/m.test(txt)) s++;
+  if (/\{[^}]+\}/.test(txt)) s++;
+  return s;
+}
+
+// ==========================================
+// MARKDOWN RENDERER
+// ==========================================
+function mdRender(text) {
+  const src = (text||"").replace(/\r\n/g,"\n");
+  const parts = src.split("```");
+  let out = "";
+  for (let i=0;i<parts.length;i++) {
+    if(i%2===1){
+      const lines = parts[i].split("\n");
+      const lang = lines[0].trim();
+      const code = lines.slice(1).join("\n");
+      out += `<pre><code class="lang-${esc(lang)}">${esc(code)}</code></pre>`;
+    } else {
+      let chunk = esc(parts[i]);
+      chunk = chunk.replace(/^# (.+)$/gm,"<h1>$1</h1>");
+      chunk = chunk.replace(/^## (.+)$/gm,"<h2>$1</h2>");
+      chunk = chunk.replace(/^&gt; (.+)$/gm,"<blockquote>$1</blockquote>");
+      chunk = chunk.replace(/^- (.+)$/gm,"<ul><li>$1</li></ul>");
+      chunk = chunk.replace(/<\/ul>\n<ul>/g,"");
+      chunk = chunk.replace(/`([^`]+)`/g,"<code>$1</code>");
+      chunk = chunk.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+      chunk = chunk.replace(/\*([^*]+)\*/g,"<em>$1</em>");
+      chunk = chunk.split("\n\n").map(p=>{
+        if(/<(h1|h2|blockquote|ul|pre)/.test(p)) return p;
+        return `<p>${p.replace(/\n/g,"<br/>")}</p>`;
+      }).join("");
+      out += chunk;
+    }
+  }
+  return out;
+}
+
+// ==========================================
+// COPY / VIEW
+// ==========================================
+async function copyOutput() {
+  const txt = $("outputRaw").textContent;
+  try {
+    await navigator.clipboard.writeText(txt);
+    toast("✓ 클립보드에 복사됨");
+  } catch {
+    const ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy"); ta.remove();
+    toast("✓ 복사됨 (fallback)");
+  }
+}
+
+function syncView() {
+  const m = $("viewMode").value;
+  $("outputRaw").style.display = m==="raw"?"block":"none";
+  $("outputMd").style.display  = m==="md"?"block":"none";
+}
+
+// ==========================================
+// TEMPLATE LOADER
+// ==========================================
+function loadTemplate(key) {
+  const t = templates[key];
+  if(!t) return;
+  currentId = null;
+  $("editingLabel").textContent = "새 프롬프트";
+  $("category").value = t.category || "General";
+  $("p_context").value = t.ctx || "";
+  $("p_vars").value    = t.vars || "";
+  $("p_inst").value    = t.inst || "";
+  $("p_format").value  = t.format || "";
+  assemblePrompt();
+}
+
+function loadToBuilder(key) {
+  loadTemplate(key);
+  // switch to builder panel
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  $("panel-builder").classList.add("active");
+  document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".nav-tab")[1].classList.add("active");
+  toast("빌더로 로드 완료");
+}
+
+// ==========================================
+// CLEAR
+// ==========================================
+function clearBuilder() {
+  if(!confirm("현재 작성 중인 내용을 초기화할까요?")) return;
+  currentId = null;
+  $("editingLabel").textContent = "새 프롬프트";
+  $("p_context").value = "";
+  $("p_vars").value = "";
+  $("p_inst").value = "";
+  $("p_format").value = "";
+  $("outputRaw").textContent = "프롬프트 조합 버튼을 눌러 시작하세요.";
+  $("outputMd").innerHTML = "";
+  $("charCount").textContent = "0";
+  $("lineCount").textContent = "0";
+  $("structureScore").textContent = "—";
+}
+
+// ==========================================
+// DRAFT
+// ==========================================
+function saveDraft() {
+  const d = {
+    currentId, category:$("category").value, tone:Number($("toneSlider").value),
+    ctx:$("p_context").value, vars:$("p_vars").value,
+    inst:$("p_inst").value, format:$("p_format").value
+  };
+  localStorage.setItem(KEY_DRAFT, JSON.stringify(d));
+  $("draftState").textContent = "자동저장 완료 " + new Date().toLocaleTimeString();
+}
+
+function loadDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY_DRAFT) || "null");
+    if(!d) return false;
+    currentId = d.currentId||null;
+    $("category").value = d.category||"General";
+    $("toneSlider").value = d.tone||2;
+    syncTone();
+    $("p_context").value = d.ctx||"";
+    $("p_vars").value    = d.vars||"";
+    $("p_inst").value    = d.inst||"";
+    $("p_format").value  = d.format||"";
+    assemblePrompt();
+    return true;
+  } catch { return false; }
+}
+
+// ==========================================
+// SAVE / LOAD / DELETE ARCHIVE
+// ==========================================
+function savePrompt() {
+  assemblePrompt();
+  const content = $("outputRaw").textContent;
+  const title = prompt("저장할 제목을 입력하세요.\n팁: 템플릿명 + 핵심 포인트 + 톤을 같이 쓰면 재학습에 도움이 됩니다.");
+  if(!title) return;
+
+  const archive = getArchive();
+  const existing = archive.find(x=>x.id===currentId);
+  const item = {
+    id: currentId || uid(),
+    title, category:$("category").value, tone:Number($("toneSlider").value),
+    ctx:$("p_context").value, vars:$("p_vars").value,
+    inst:$("p_inst").value, format:$("p_format").value,
+    content,
+    created_at: existing?.created_at || nowISO(),
+    updated_at: nowISO()
+  };
+
+  const idx = archive.findIndex(x=>x.id===item.id);
+  if(idx>=0) archive[idx]=item; else archive.unshift(item);
+  currentId = item.id;
+  $("editingLabel").textContent = `편집 중: ${item.title}`;
+
+  setArchive(archive);
+  updateArchCount();
+  toast("✓ 저장 완료!");
+}
+
+function loadFromArchive(id) {
+  const item = getArchive().find(x=>x.id===id);
+  if(!item) return;
+  currentId = item.id;
+  $("category").value = item.category||"General";
+  $("toneSlider").value = item.tone||2;
+  syncTone();
+  $("p_context").value = item.ctx||"";
+  $("p_vars").value    = item.vars||"";
+  $("p_inst").value    = item.inst||"";
+  $("p_format").value  = item.format||"";
+  $("editingLabel").textContent = `편집 중: ${item.title}`;
+  assemblePrompt();
+
+  // go to builder
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  $("panel-builder").classList.add("active");
+  document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".nav-tab")[1].classList.add("active");
+  toast("✓ 불러오기 완료: " + item.title);
+}
+
+function duplicateFromArchive(id) {
+  const archive = getArchive();
+  const item = archive.find(x=>x.id===id);
+  if(!item) return;
+  const copy = {...item, id:uid(), title:item.title+" (복제)", created_at:nowISO(), updated_at:nowISO()};
+  archive.unshift(copy);
+  setArchive(archive);
+  renderArchive();
+  updateArchCount();
+  toast("✓ 복제 완료");
+}
+
+function deleteFromArchive(id) {
+  const item = getArchive().find(x=>x.id===id);
+  if(!item) return;
+  if(!confirm(`삭제할까요?\n"${item.title}"`)) return;
+  setArchive(getArchive().filter(x=>x.id!==id));
+  if(currentId===id) { currentId=null; $("editingLabel").textContent="새 프롬프트"; }
+  renderArchive();
+  updateArchCount();
+  toast("삭제 완료", "#ff6b6b");
+}
+
+// ==========================================
+// RENDER ARCHIVE
+// ==========================================
+function renderArchive() {
+  const q = ($("searchInp")?.value||"").toLowerCase();
+  const cat = $("filterCat")?.value||"ALL";
+  const sort = $("sortOrder")?.value||"new";
+
+  let list = getArchive();
+  if(cat!=="ALL") list = list.filter(x=>(x.category||"General")===cat);
+  if(q) list = list.filter(x=>(x.title||"").toLowerCase().includes(q)||(x.content||"").toLowerCase().includes(q));
+  list.sort((a,b) => {
+    if(sort==="new") return b.updated_at.localeCompare(a.updated_at);
+    if(sort==="old") return a.updated_at.localeCompare(b.updated_at);
+    return (a.title||"").localeCompare(b.title||"");
+  });
+
+  const el = $("archiveList");
+  if(list.length===0) {
+    el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--text3);">
+      <i class="fa-solid fa-box-open" style="font-size:32px;margin-bottom:12px;display:block;"></i>
+      <div style="font-size:14px;">저장된 프롬프트가 없어요.</div>
+      <div style="font-size:12px;margin-top:4px;">빌더에서 프롬프트를 만들고 저장해 보세요.</div>
+    </div>`;
+    return;
+  }
+
+  const catColor = {
+    Trade:"rgba(0,212,170,0.1);color:#00d4aa",
+    Compliance:"rgba(255,107,107,0.1);color:#ff6b6b",
+    Dev:"rgba(0,119,255,0.1);color:#0077ff",
+    Writing:"rgba(245,166,35,0.1);color:#f5a623",
+    Research:"rgba(195,232,141,0.1);color:#c3e88d",
+    General:"rgba(128,128,128,0.1);color:#8b949e"
+  };
+
+  el.innerHTML = list.map(item => {
+    const toneData = toneMap[item.tone||2];
+    const catStyle = catColor[item.category||"General"]||catColor.General;
+    const preview = (item.content||"").slice(0,120).replace(/\n/g," ");
+    const date = (item.updated_at||"").slice(0,10);
+    return `<div class="arch-card">
+      <div style="display:flex;align-items:start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+        <div style="min-width:0;flex:1;">
+          <div style="font-size:11px;color:var(--text3);">${date}</div>
+          <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;" title="${esc(item.title)}">${esc(item.title)}</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <div class="btn-icon" onclick="loadFromArchive('${item.id}')" title="불러오기"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px;"></i></div>
+          <div class="btn-icon" onclick="duplicateFromArchive('${item.id}')" title="복제"><i class="fa-regular fa-copy" style="font-size:11px;"></i></div>
+          <div class="btn-icon danger" onclick="deleteFromArchive('${item.id}')" title="삭제"><i class="fa-regular fa-trash-can" style="font-size:11px;"></i></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+        <span class="badge" style="background:${catStyle};">${esc(item.category||"General")}</span>
+        <span class="badge" style="background:${toneData.color}22;color:${toneData.color};">톤 Lv.${item.tone||2}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.5;">${esc(preview)}${preview.length===120?"…":""}</div>
+    </div>`;
+  }).join("");
+}
+
+// ==========================================
+// EXPORT / IMPORT
+// ==========================================
+function exportArchive() {
+  const data = { app:"Trade Prompt Lab v3", exported_at:nowISO(), items:getArchive() };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url; a.download=`prompt-lab-${nowISO().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast("✓ Export 완료");
+}
+
+function importArchive(input) {
+  const f = input.files?.[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const json = JSON.parse(e.target.result);
+      const items = Array.isArray(json)?json:(json.items||[]);
+      const archive = getArchive();
+      const map = new Map(archive.map(x=>[x.id,x]));
+      for(const it of items){
+        if(!it.id) it.id=uid();
+        const prev = map.get(it.id);
+        if(!prev||((it.updated_at||"")>(prev.updated_at||""))) map.set(it.id,it);
+      }
+      setArchive([...map.values()]);
+      updateArchCount();
+      renderArchive();
+      toast(`✓ Import: ${items.length}개 로드`);
+    } catch { toast("Import 실패 — JSON 확인", "#ff6b6b"); }
+  };
+  reader.readAsText(f);
+  input.value="";
+}
+
+// ==========================================
+// INIT
+// ==========================================
+window.addEventListener("DOMContentLoaded", () => {
+  syncTone();
+  const loaded = loadDraft();
+  if(!loaded) loadTemplate("tariff");
+  updateArchCount();
+
+  // API 상태 초기화
+  const isNetlify = location.hostname.includes("netlify.app");
+  updateApiStatus(isNetlify);
+
+  // auto-assemble on input
+  ["p_context","p_vars","p_inst","p_format"].forEach(id=>{
+    $(id).addEventListener("input", debouncedAssemble);
+  });
+  $("category").addEventListener("change", debouncedAssemble);
+});
+
+// expose for inline
+function switchTheory(id) {
+  document.querySelectorAll(".theory-panel").forEach(p => p.style.display = "none");
+  const el = document.getElementById(id);
+  if (el) el.style.display = "block";
+  document.querySelectorAll(".theory-tab").forEach(t => t.classList.remove("active"));
+  if (event && event.currentTarget) event.currentTarget.classList.add("active");
+  currentTheoryId = id;
+}
+window.switchPanel = switchPanel;
+window.switchTheory = switchTheory;
+window.loadTemplate = loadTemplate;
+window.loadToBuilder = loadToBuilder;
+window.toggleAccordion = toggleAccordion;
+window.loadFromArchive = loadFromArchive;
+window.duplicateFromArchive = duplicateFromArchive;
+window.deleteFromArchive = deleteFromArchive;
+window.openApiModal = openApiModal;
+window.closeApiModal = closeApiModal;
+window.aiExplainCurrentTheory = aiExplainCurrentTheory;
+window.closeExplainModal = closeExplainModal;
+window.aiAnalyzePrompt = aiAnalyzePrompt;
+</script>
+</body>
+</html>
