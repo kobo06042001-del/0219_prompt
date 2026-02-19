@@ -4,7 +4,6 @@
    - Netlify Environment Variable(ANTHROPIC_API_KEY)은
      Netlify Function에서만 읽음
    ========================================================= */
-
 (function (global) {
   "use strict";
 
@@ -12,49 +11,34 @@
     // ✅ 서버리스(권장): 브라우저는 키 없이 Function만 호출
     USE_SERVERLESS: true,
 
-    // ✅ Netlify Functions 엔드포인트 (claude.js 함수 호출 경로)
+    // ✅ Netlify Functions 엔드포인트
     API_ENDPOINT: "/.netlify/functions/claude",
-
-    // ✅ index.html에서 APP_CONFIG.proxyUrl을 참조하는 코드가 있으므로 같이 제공
     proxyUrl: "/.netlify/functions/claude",
 
-    // ❌ 브라우저에 키 넣지 마세요 (노출됨)
+    // ❌ 브라우저에 키 넣지 마세요
     API_KEY: "",
 
-    // (선택) 모델/옵션을 프론트에서 같이 보내고 싶을 때 사용
     MODEL: "claude-3-5-sonnet-latest",
     MAX_TOKENS: 800,
     TEMPERATURE: 0.3,
 
-    // ✅ 기존 UI가 "키 없으면 모달 띄우기" 같은 로직을 갖고 있으면,
-    //    이 플래그로 팝업을 끄게 만들 수 있음
+    // ✅ 서버리스일 땐 “키 입력 모달” 로직 자체를 끔
     DISABLE_API_KEY_MODAL: true,
   };
 
-  // 전역으로 노출 (기존 코드 호환)
+  // 기존 코드 호환: CONFIG / APP_CONFIG 둘 다 제공
   global.CONFIG = CONFIG;
   global.APP_CONFIG = CONFIG;
 
-  // ✅ 일부 템플릿 호환: window.API_KEY 참조 방지
+  // ✅ 핵심: index.html이 ANTHROPIC_CONFIG.apiKey만 보는 구조라면
+  // 서버리스 모드일 때 "가짜 키"를 넣어 체크를 통과시킴
+  global.ANTHROPIC_CONFIG = {
+    apiKey: CONFIG.USE_SERVERLESS ? "__SERVERLESS__" : ""
+  };
+
+  // 구형 템플릿 호환
   global.API_KEY = "";
 
-  // ✅ "키가 없으면 경고/팝업"을 자동으로 띄우는 함수가 있다면,
-  //    여기서 선제적으로 막아버림 (있을 때만)
-  function blockKeyModal(fnName) {
-    if (typeof global[fnName] === "function") {
-      const original = global[fnName];
-      global[fnName] = function (...args) {
-        // 서버리스 모드에서는 모달/가이드를 띄우지 않음
-        if (CONFIG.USE_SERVERLESS && CONFIG.DISABLE_API_KEY_MODAL) return;
-        return original.apply(this, args);
-      };
-    }
-  }
-
-  blockKeyModal("showApiKeyModal");
-  blockKeyModal("openApiKeyModal");
-  blockKeyModal("renderApiKeyGuide");
-
-  // ✅ "서버리스 모드" 힌트
-  global.__SERVERLESS_MODE__ = true;
+  // 서버리스 모드 힌트
+  global.__SERVERLESS_MODE__ = !!CONFIG.USE_SERVERLESS;
 })(window);

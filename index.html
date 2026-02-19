@@ -1802,12 +1802,9 @@ async function callClaude(messages, system, maxTokens=1000) {
 
 // 타이핑 효과 시뮬레이션 (CORS 이슈 없는 일반 fetch 사용)
 async function callClaudeStreaming(messages, system, targetEl, onDone) {
-  const useServerless =
-    (typeof APP_CONFIG !== "undefined" && APP_CONFIG.USE_SERVERLESS === true) ||
-    (typeof CONFIG !== "undefined" && CONFIG.USE_SERVERLESS === true);
-
-  if(!useServerless && !getApiKey()) {
-    targetEl.innerHTML = `<span style="color:#ff6b6b;">⚠️ API 키가 설정되지 않았습니다.</span>`;
+  const serverless = (window.APP_CONFIG && APP_CONFIG.USE_SERVERLESS);
+  if(!serverless && !getApiKey()) {
+    targetEl.innerHTML = `<span style="color:#ff6b6b;">⚠️ API 키가 설정되지 않았습니다.<br>우측 상단 <strong>API 미연결</strong> 버튼을 눌러 키를 입력해주세요.</span>`;
     return;
   }
 
@@ -1815,13 +1812,13 @@ async function callClaudeStreaming(messages, system, targetEl, onDone) {
 
   try {
     const fullText = await callClaude(messages, system, 1200);
-    // 타이핑 효과 시뮬레이션
     await typewriterEffect(targetEl, fullText);
     if(onDone) onDone(fullText);
   } catch(e) {
     targetEl.innerHTML = `<span style="color:#ff6b6b;">오류: ${esc(e.message)}</span>`;
   }
 }
+
 
 // 타이핑 효과 (청크 단위로 렌더링)
 async function typewriterEffect(targetEl, fullText) {
@@ -1852,7 +1849,9 @@ const theoryMeta = {
 let currentTheoryId = "t1";
 
 async function aiExplainCurrentTheory() {
-  if(!getApiKey()) { openApiModal(); return; }
+  const serverless = (window.APP_CONFIG && APP_CONFIG.USE_SERVERLESS);
+  if(!serverless && !getApiKey()) { openApiModal(); return; }
+
   const meta = theoryMeta[currentTheoryId];
   $("explainTitle").textContent = meta.title + " — AI 심화 설명";
   $("explainContent").innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--text3);"><div class="spinner"></div> 설명을 생성 중입니다...</div>';
@@ -1884,13 +1883,16 @@ async function aiExplainCurrentTheory() {
   );
 }
 
+
 function closeExplainModal() { $("aiExplainModal").classList.add("hidden"); }
 
 // ==========================================
 // AI 기능 2: 프롬프트 품질 분석
 // ==========================================
 async function aiAnalyzePrompt() {
-  if(!getApiKey()) { openApiModal(); return; }
+  const serverless = (window.APP_CONFIG && APP_CONFIG.USE_SERVERLESS);
+  if(!serverless && !getApiKey()) { openApiModal(); return; }
+
   const prompt = $("outputRaw").textContent;
   if(!prompt || prompt.includes("프롬프트 조합 버튼")) {
     toast("먼저 프롬프트를 조합해주세요", "#f5a623"); return;
@@ -1917,6 +1919,28 @@ async function aiAnalyzePrompt() {
     () => { spinner.style.display="none"; icon.style.display="inline"; }
   );
 }
+
+
+  const panel = $("aiFeedbackPanel");
+  const content = $("aiFeedbackContent");
+  const spinner = $("feedbackSpinner");
+  const icon = $("feedbackIcon");
+
+  panel.classList.add("visible");
+  spinner.style.display = "inline-block";
+  icon.style.display = "none";
+  content.innerHTML = '<span style="color:var(--text3);">분석 중...</span>';
+
+  const system = `당신은 프롬프트 엔지니어링 전문가입니다.
+제공된 프롬프트를 분석하고 실질적인 개선 방향을 제시하세요.
+한국어로 응답하고, 마크다운을 활용해 명확하게 구조화하세요.`;
+
+  await callClaudeStreaming(
+    [{role:"user", content:`아래 프롬프트를 분석해주세요:\n\n\`\`\`\n${prompt}\n\`\`\`\n\n다음 항목으로 평가해주세요:\n\n## 📊 품질 평가 (★ 1~5)\n- 구조 명확성 (#헤더 활용 여부):\n- 역할 정의 (페르소나 설정):\n- 지시 구체성:\n- 출력 형식 명시:\n- 변수/데이터 격리:\n\n## ✅ 잘된 점\n(2~3가지)\n\n## ⚠️ 개선이 필요한 점\n(가장 중요한 2가지)\n\n## 💡 개선 제안 (코드 포함)\n(수정 전 → 수정 후 형태로 1~2개)`}],
+    system,
+    content,
+    () => { spinner.style.display="none"; icon.style.display="inline"; }
+  );
 
 // ==========================================
 // DATA & STATE
